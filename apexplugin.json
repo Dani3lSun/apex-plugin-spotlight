@@ -1,0 +1,50 @@
+{
+  "name": "APEX Spotlight Search",
+  "version": "1.0.0",
+  "description": "APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It provides quick navigation and unified search experience across an APEX application.",
+  "keywords": [
+    "oracle",
+    "apex",
+    "plugin",
+    "dynamic_action",
+    "spotlight",
+    "search",
+    "navigation"
+  ],
+  "homepage": "https://github.com/Dani3lSun/apex-plugin-spotlight",
+  "bugs": {
+    "url": "https://github.com/Dani3lSun/apex-plugin-spotlight/issues",
+    "email": "daniel@danielh.de"
+  },
+  "license": "MIT",
+  "author": {
+    "name": "Daniel Hochleitner",
+    "email": "daniel@danielh.de",
+    "url": "https://danielhochleitner.de",
+    "twitter": "Dani3lSun",
+    "donationUrl": "https://www.paypal.me/DanielHochleitnerIT/3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dani3lSun/apex-plugin-spotlight.git"
+  },
+  "oracle": {
+    "versions": [
+      "11.2.0.1",
+      "12.1.0.1",
+      "12.2.0.1"
+    ],
+    "apex": {
+      "versions": [
+        "5.1.0",
+        "18.1.0"
+      ],
+      "plugin": {
+        "internalName": "DE.DANIELH.APEXSPOTLIGHT",
+        "type": "dynamic action",
+        "demo": "https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN",
+        "previewImage": "https://raw.githubusercontent.com/Dani3lSun/apex-plugin-spotlight/master/preview.gif"
+      }
+    }
+  }
+}
