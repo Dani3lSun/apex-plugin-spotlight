@@ -48,7 +48,7 @@ The plugin settings are highly customizable and you can change:
 
 
 ## How to use
-- New DA on on an certain event, e.g *Page Load* or *Click*
+- New DA on an certain event, e.g *Page Load* or *Click*
 - New Action: *APEX Spotlight Search*
 - Choose best fitting settings
 
