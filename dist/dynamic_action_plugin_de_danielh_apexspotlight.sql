@@ -175,7 +175,7 @@ wwv_flow_api.create_plugin(
 ,p_help_text=>'<p>APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It provides quick navigation and unified search experience across an APEX application.</p>'
 ,p_version_identifier=>'1.0.0'
 ,p_about_url=>'https://github.com/Dani3lSun/apex-plugin-spotlight'
-,p_files_version=>280
+,p_files_version=>288
 );
 wwv_flow_api.create_plugin_attribute(
  p_id=>wwv_flow_api.id(4563098924697023)
