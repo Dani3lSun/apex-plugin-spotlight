@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.0.0
+ * Version: 1.1.0
  */
 
 /**
@@ -46,8 +46,8 @@ var apexSpotlight = {
   gOneMatchText: null,
   gMultipleMatchesText: null,
   gInPageSearchText: null,
-  gEnableKeyboardShortcuts: false,
   gEnableInPageSearch: true,
+  gEnableDataCache: false,
   gSubmitItemsArray: [],
   gKeyboardShortcutsArray: [],
   /**
@@ -55,6 +55,14 @@ var apexSpotlight = {
    * @param {function} callback
    */
   getSpotlightData: function(callback) {
+    var cacheData;
+    if (apexSpotlight.gEnableDataCache) {
+      cacheData = apexSpotlight.getSpotlightDataSessionStorage();
+      if (cacheData) {
+        callback(JSON.parse(cacheData));
+        return;
+      }
+    }
     try {
       apex.server.plugin(apexSpotlight.gAjaxIdentifier, {
         pageItems: apexSpotlight.gSubmitItemsArray
@@ -62,6 +70,9 @@ var apexSpotlight = {
         dataType: 'json',
         success: function(data) {
           apex.event.trigger('body', 'apexspotlight-ajax-success', data);
+          if (apexSpotlight.gEnableDataCache) {
+            apexSpotlight.setSpotlightDataSessionStorage(JSON.stringify(data));
+          }
           callback(data);
         },
         error: function(xhr, pMessage) {
@@ -78,6 +89,41 @@ var apexSpotlight = {
       });
       callback([]);
     }
+  },
+  /**
+   * Save JSON Data in local session storage of browser (apexSpotlight.<app_id>.data)
+   * @param {object} pData
+   */
+  setSpotlightDataSessionStorage: function(pData) {
+    var hasSessionStorageSupport = apex.storage.hasSessionStorageSupport;
+
+    if (hasSessionStorageSupport) {
+      var apexSession = $v('pInstance');
+      var sessionStorage = apex.storage.getScopedSessionStorage({
+        prefix: 'apexSpotlight',
+        useAppId: true
+      });
+
+      sessionStorage.setItem(apexSession + '.data', pData);
+    }
+  },
+  /**
+   * Get JSON Data from local session storage of browser (apexSpotlight.<app_id>.data)
+   */
+  getSpotlightDataSessionStorage: function() {
+    var hasSessionStorageSupport = apex.storage.hasSessionStorageSupport;
+
+    var storageValue;
+    if (hasSessionStorageSupport) {
+      var apexSession = $v('pInstance');
+      var sessionStorage = apex.storage.getScopedSessionStorage({
+        prefix: 'apexSpotlight',
+        useAppId: true
+      });
+
+      storageValue = sessionStorage.getItem(apexSession + '.data');
+    }
+    return storageValue;
   },
   /**
    * Handle aria attributes
@@ -296,8 +342,6 @@ var apexSpotlight = {
       var out = '',
         i,
         item,
-        desc,
-        url,
         type,
         shortcut,
         icon,
@@ -312,14 +356,12 @@ var apexSpotlight = {
 
         shortcut = item.shortcut;
         type = item.t || apexSpotlight.URL_TYPES.redirect;
-        url = item.u;
-        desc = item.d;
         icon = item.i || apexSpotlight.ICONS.search;
 
         entry = {
           title: item.n,
-          desc: desc,
-          url: url,
+          desc: item.d,
+          url: item.u,
           icon: icon,
           type: type
         };
@@ -699,12 +741,13 @@ var apexSpotlight = {
     var multipleMatchesText = apexSpotlight.gMultipleMatchesText = daThis.action.attribute05;
     var inPageSearchText = apexSpotlight.gInPageSearchText = daThis.action.attribute06;
 
-    var enableKeyboardShortcuts = apexSpotlight.gEnableKeyboardShortcuts = daThis.action.attribute08;
+    var enableKeyboardShortcuts = daThis.action.attribute08;
     var keyboardShortcuts = daThis.action.attribute09;
     var submitItems = daThis.action.attribute10;
     var enableInPageSearch = apexSpotlight.gEnableInPageSearch = daThis.action.attribute11;
     var maxNavResult = apexSpotlight.gMaxNavResult = daThis.action.attribute12;
     var width = apexSpotlight.gWidth = daThis.action.attribute13;
+    var enableDataCache = daThis.action.attribute14;
 
     var keyboardShortcutsArray = [];
     var submitItemsArray = [];
@@ -723,6 +766,13 @@ var apexSpotlight = {
     apex.debug.log('apexSpotlight.pluginHandler - enableInPageSearch', enableInPageSearch);
     apex.debug.log('apexSpotlight.pluginHandler - maxNavResult', maxNavResult);
     apex.debug.log('apexSpotlight.pluginHandler - width', width);
+    apex.debug.log('apexSpotlight.pluginHandler - enableDataCache', enableDataCache);
+
+    if (enableDataCache == 'Y') {
+      apexSpotlight.gEnableDataCache = true;
+    } else {
+      apexSpotlight.gEnableDataCache = false;
+    }
 
     // build page items to submit array
     if (submitItems) {

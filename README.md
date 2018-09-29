@@ -1,10 +1,12 @@
-# Oracle Dynamic Action Plugin - APEX Spotlight Search
+# Oracle APEX Dynamic Action Plugin - APEX Spotlight Search
 APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It provides quick navigation and unified search experience across an APEX application.
 
 ## Preview
 ![](https://github.com/Dani3lSun/apex-plugin-spotlight/blob/master/preview.gif)
 
 ## Changelog
+
+#### 1.1.0 - Added possibility to cache server response in browsers session storage (reduce number of AJAX calls)
 
 #### 1.0.0 - Initial Release
 
@@ -34,6 +36,7 @@ The plugin settings are highly customizable and you can change:
   - **Column 3:** - Link / URL
   - **Column 4:** - Icon
 - **Page Items to Submit** - Enter page or application items to be set into session state when the SQL query is executed via an AJAX request
+- **Enable Local Data Cache** - Enable data cache to save the complete server response (from Data Source AJAX call) in session storage of browser. This helps to reduce calls from browser to server side
 - **Enable In-Page Search** - Enable in-page search to highlight found results on the current page depending on the search keyword
 - **Max. Search Display Results** - The maximum allowed search results displayed at once
 - **Width** - Width of the Spotlight search dialog. Enter either numbers for pixel values or percentage values

@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -30,6 +30,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     l_enable_inpage_search      VARCHAR2(5) := p_dynamic_action.attribute_05;
     l_max_display_results       NUMBER := to_number(p_dynamic_action.attribute_06);
     l_width                     p_dynamic_action.attribute_07%TYPE := p_dynamic_action.attribute_07;
+    l_enable_data_cache         VARCHAR2(5) := p_dynamic_action.attribute_08;
     --
   BEGIN
     -- Debug
@@ -72,6 +73,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     l_result.attribute_11 := l_enable_inpage_search;
     l_result.attribute_12 := l_max_display_results;
     l_result.attribute_13 := l_width;
+    l_result.attribute_14 := l_enable_data_cache;
     --
     RETURN l_result;
     --
