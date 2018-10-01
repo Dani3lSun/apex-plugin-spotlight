@@ -37,7 +37,8 @@
     "apex": {
       "versions": [
         "5.1.0",
-        "18.1.0"
+        "18.1.0",
+        "18.2.0"
       ],
       "plugin": {
         "internalName": "DE.DANIELH.APEXSPOTLIGHT",
