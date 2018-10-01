@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.1.0
+ * Version: 1.2.0
  */
 
 /**
@@ -65,11 +65,13 @@ var apexSpotlight = {
     }
     try {
       apex.server.plugin(apexSpotlight.gAjaxIdentifier, {
-        pageItems: apexSpotlight.gSubmitItemsArray
+        pageItems: apexSpotlight.gSubmitItemsArray,
+        x01: 'GET_DATA'
       }, {
         dataType: 'json',
         success: function(data) {
           apex.event.trigger('body', 'apexspotlight-ajax-success', data);
+          apex.debug.log("apexSpotlight.getSpotlightData AJAX Success", data);
           if (apexSpotlight.gEnableDataCache) {
             apexSpotlight.setSpotlightDataSessionStorage(JSON.stringify(data));
           }
@@ -87,7 +89,39 @@ var apexSpotlight = {
       apex.event.trigger('body', 'apexspotlight-ajax-error', {
         "message": err
       });
+      apex.debug.log("apexSpotlight.getSpotlightData AJAX Error", err);
       callback([]);
+    }
+  },
+  /**
+   * Get JSON containing SSP URL with replaced search keyword value (~SEARCH_VALUE~ substitution string)
+   * @param {string} pUrl
+   * @param {function} callback
+   */
+  getProperApexUrl: function(pUrl, callback) {
+    try {
+      apex.server.plugin(apexSpotlight.gAjaxIdentifier, {
+        x01: 'GET_URL',
+        x02: apexSpotlight.gKeywords,
+        x03: pUrl
+      }, {
+        dataType: 'json',
+        success: function(data) {
+          apex.debug.log("apexSpotlight.getProperApexUrl AJAX Success", data);
+          callback(data);
+        },
+        error: function(xhr, pMessage) {
+          apex.debug.log("apexSpotlight.getProperApexUrl AJAX Error", pMessage);
+          callback({
+            "url": pUrl
+          });
+        }
+      });
+    } catch (err) {
+      apex.debug.log("apexSpotlight.getProperApexUrl AJAX Error", err);
+      callback({
+        "url": pUrl
+      });
     }
   },
   /**
@@ -198,7 +232,22 @@ var apexSpotlight = {
         break;
 
       case apexSpotlight.URL_TYPES.redirect:
-        apex.navigation.redirect(url);
+        // replace ~SEARCH_VALUE~ substitution string
+        if (url.includes('~SEARCH_VALUE~')) {
+          // server side if APEX URL is detected
+          if (url.startsWith('f?p=')) {
+            apexSpotlight.getProperApexUrl(url, function(data) {
+              apex.navigation.redirect(data.url);
+            });
+            // client side for all other URLs
+          } else {
+            url = url.replace('~SEARCH_VALUE~', apexSpotlight.gKeywords);
+            apex.navigation.redirect(url);
+          }
+          // normal URL without substitution string
+        } else {
+          apex.navigation.redirect(url);
+        }
         break;
     }
 

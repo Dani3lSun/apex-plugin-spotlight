@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -93,43 +93,90 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     l_data_type_list        apex_application_global.vc_arr2;
     l_column_value_list     apex_plugin_util.t_column_value_list2;
     l_row_count             NUMBER;
+    l_request_type          VARCHAR2(50);
+    l_search_value          VARCHAR2(1000);
+    l_url                   VARCHAR2(4000);
+    l_url_new               VARCHAR2(4000);
+    --
   BEGIN
-    -- Data Types of SQL Source Columns
-    l_data_type_list(1) := apex_plugin_util.c_data_type_varchar2;
-    l_data_type_list(2) := apex_plugin_util.c_data_type_varchar2;
-    l_data_type_list(3) := apex_plugin_util.c_data_type_varchar2;
-    l_data_type_list(4) := apex_plugin_util.c_data_type_varchar2;
-    -- Get Data from SQL Source
-    l_column_value_list := apex_plugin_util.get_data2(p_sql_statement  => l_data_source_sql_query,
-                                                      p_min_columns    => 4,
-                                                      p_max_columns    => 4,
-                                                      p_component_name => p_dynamic_action.action);
-    -- loop over SQL Source results and write json
-    apex_json.open_array();
-    -- 
-    l_row_count := l_column_value_list(1).value_list.count;
-    --
-    FOR i IN 1 .. l_row_count LOOP
-      apex_json.open_object;
-      -- name / title
-      apex_json.write('n',
-                      l_column_value_list(1).value_list(i).varchar2_value);
-      -- description
-      apex_json.write('d',
-                      l_column_value_list(2).value_list(i).varchar2_value);
-      -- link / URL
-      apex_json.write('u',
-                      l_column_value_list(3).value_list(i).varchar2_value);
-      -- icon
-      apex_json.write('i',
-                      l_column_value_list(4).value_list(i).varchar2_value);
-      -- type
-      apex_json.write('t',
-                      'redirect');
-      apex_json.close_object;
-    END LOOP;
-    --
-    apex_json.close_array;
+    -- Check request type in X01
+    l_request_type := apex_application.g_x01;
+    -- GET_DATA Request
+    IF l_request_type = 'GET_DATA' THEN
+      -- Data Types of SQL Source Columns
+      l_data_type_list(1) := apex_plugin_util.c_data_type_varchar2;
+      l_data_type_list(2) := apex_plugin_util.c_data_type_varchar2;
+      l_data_type_list(3) := apex_plugin_util.c_data_type_varchar2;
+      l_data_type_list(4) := apex_plugin_util.c_data_type_varchar2;
+      -- Get Data from SQL Source
+      l_column_value_list := apex_plugin_util.get_data2(p_sql_statement  => l_data_source_sql_query,
+                                                        p_min_columns    => 4,
+                                                        p_max_columns    => 4,
+                                                        p_component_name => p_dynamic_action.action);
+      -- loop over SQL Source results and write json
+      apex_json.open_array();
+      -- 
+      l_row_count := l_column_value_list(1).value_list.count;
+      --
+      FOR i IN 1 .. l_row_count LOOP
+        apex_json.open_object;
+        -- name / title
+        apex_json.write('n',
+                        l_column_value_list(1).value_list(i).varchar2_value);
+        -- description
+        apex_json.write('d',
+                        l_column_value_list(2).value_list(i).varchar2_value);
+        -- link / URL
+        apex_json.write('u',
+                        l_column_value_list(3).value_list(i).varchar2_value);
+        -- icon
+        apex_json.write('i',
+                        l_column_value_list(4).value_list(i).varchar2_value);
+        -- type
+        apex_json.write('t',
+                        'redirect');
+        apex_json.close_object;
+      END LOOP;
+      --
+      apex_json.close_array;
+      -- GET_URL Request
+    ELSIF l_request_type = 'GET_URL' THEN
+      -- get values from AJAX call X02/X03
+      l_search_value := apex_application.g_x02;
+      l_url          := apex_application.g_x03;
+      -- Check for f?p URL and if URL contains ~SEARCH_VALUE~ substitution string
+      IF instr(l_url,
+               'f?p=') > 0 AND
+         instr(l_url,
+               '~SEARCH_VALUE~') > 0 THEN
+        -- replace substitution string with real search value
+        l_url := REPLACE(l_url,
+                         '~SEARCH_VALUE~',
+                         l_search_value);
+        -- only if input URL already contains a checksum > remove checksum
+        IF instr(l_url,
+                 '&cs=') > 0 THEN
+          l_url := substr(l_url,
+                          1,
+                          instr(l_url,
+                                '&cs=') - 1);
+        END IF;
+        -- get SSP URL
+        l_url_new := apex_util.prepare_url(p_url => l_url);
+        --
+        apex_json.open_object;
+        apex_json.write('url',
+                        l_url_new);
+        apex_json.close_object;
+        -- if checks don´t succeed return input URL back
+      ELSE
+        apex_json.open_object;
+        apex_json.write('url',
+                        l_url);
+        apex_json.close_object;
+      END IF;
+      --
+    END IF;
     --
     RETURN l_result;
     --

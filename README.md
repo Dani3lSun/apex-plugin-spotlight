@@ -6,6 +6,8 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
+#### 1.2.0 - Added possibility to include a substitution string (~SEARCH_VALUE~) in the target link or URL, which gets replaced with the actual search keyword
+
 #### 1.1.0 - Added possibility to cache server response in browsers session storage (reduce number of AJAX calls)
 
 #### 1.0.0 - Initial Release
@@ -14,7 +16,7 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 ## Install
 - Import plugin file "dynamic_action_plugin_de_danielh_apexspotlight.sql" from **dist** directory into your application
 - *Optional:* Deploy the JS/CSS files from **src/files** directory on your web server and change the "Plugin File Prefix" to web servers folder path.
-
+- *Optional:* Compile the plugin PL/SQL package in your APEX parsing schema and change the plugin render/ajax function to include the package object name. The package files are located in **src/db** directory.
 
 ## Plugin Settings
 The plugin settings are highly customizable and you can change:
@@ -55,6 +57,8 @@ The plugin settings are highly customizable and you can change:
 - New Action: *APEX Spotlight Search*
 - Choose best fitting settings
 
+*Enable Keyboard Shortcuts should be used when the DA executes on page load!*
+
 
 #### Sample SQL Query for data source
 
@@ -67,7 +71,30 @@ SELECT aap.page_title AS title
  WHERE aap.application_id = :app_id
    AND aap.page_mode = 'Normal'
    AND aap.page_requires_authentication = 'Yes'
+   AND aap.page_id != 0
  ORDER BY aap.page_id
+```
+
+**Use the search keyword in your link target or URL using substitution string "~SEARCH_VALUE~"**
+
+```language-sql
+SELECT aap.page_title AS title
+      ,'Set item with search keyword' AS description
+      ,apex_page.get_url(p_page   => aap.page_id
+                        ,p_items  => 'P1_ITEM'
+                        ,p_values => '~SEARCH_VALUE~') AS link
+      ,'fa-home' AS icon
+  FROM apex_application_pages aap
+ WHERE aap.application_id = :app_id
+   AND aap.page_id = 1
+```
+
+```language-sql
+SELECT 'Set a item' AS title
+      ,'Set item with search keyword on client side' AS description
+      ,'javascript:$s(''P1_ITEM'',''~SEARCH_VALUE~'');' AS link
+      ,'fa-home' AS icon
+  FROM dual
 ```
 
 
