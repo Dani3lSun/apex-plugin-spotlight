@@ -6,7 +6,7 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
-#### 1.2.0 - Added possibility to include a substitution string (~SEARCH_VALUE~) in the target link or URL, which gets replaced with the actual search keyword
+#### 1.2.0 - Added possibility to include a substitution string (\~SEARCH_VALUE\~) in the target link or URL, which gets replaced with the actual search keyword
 
 #### 1.1.0 - Added possibility to cache server response in browsers session storage (reduce number of AJAX calls)
 
@@ -75,7 +75,7 @@ SELECT aap.page_title AS title
  ORDER BY aap.page_id
 ```
 
-**Use the search keyword in your link target or URL using substitution string "~SEARCH_VALUE~"**
+**Use the search keyword in your link target or URL using substitution string "\~SEARCH_VALUE\~"**
 
 ```language-sql
 SELECT aap.page_title AS title
