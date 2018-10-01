@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.2.0
+ * Version: 1.2.1
  */
 
 /**
@@ -38,6 +38,7 @@ var apexSpotlight = {
   gWidth: 650,
   gHasDialogCreated: false,
   gSearchIndex: [],
+  gStaticIndex: [],
   gKeywords: '',
   gAjaxIdentifier: null,
   gPlaceholderText: null,
@@ -306,6 +307,8 @@ var apexSpotlight = {
    */
   resultsAddOns: function(results) {
 
+    var shortcutCounter = 0;
+
     if (apexSpotlight.gEnableInPageSearch == 'Y') {
       results.push({
         n: apexSpotlight.gInPageSearchText,
@@ -314,6 +317,27 @@ var apexSpotlight = {
         t: apexSpotlight.URL_TYPES.searchPage,
         shortcut: 'Ctrl + 1'
       });
+      shortcutCounter = shortcutCounter + 1;
+    }
+
+    for (var i = 0; i < apexSpotlight.gStaticIndex.length; i++) {
+      shortcutCounter = shortcutCounter + 1;
+      if (shortcutCounter > 4) {
+        results.push({
+          n: apexSpotlight.gStaticIndex[i].n,
+          u: apexSpotlight.gStaticIndex[i].u,
+          i: apexSpotlight.gStaticIndex[i].i,
+          t: apexSpotlight.gStaticIndex[i].t
+        });
+      } else {
+        results.push({
+          n: apexSpotlight.gStaticIndex[i].n,
+          u: apexSpotlight.gStaticIndex[i].u,
+          i: apexSpotlight.gStaticIndex[i].i,
+          t: apexSpotlight.gStaticIndex[i].t,
+          shortcut: 'Ctrl + ' + shortcutCounter
+        });
+      }
     }
 
     return results;
@@ -617,7 +641,7 @@ var apexSpotlight = {
 
           if (e.ctrlKey) {
             // supports Ctrl + 1, 2, 3, 4 shortcuts
-            last4Results = results$.find(apexSpotlight.DOT + apexSpotlight.SP_SHORTCUT).parent().get().reverse();
+            last4Results = results$.find(apexSpotlight.DOT + apexSpotlight.SP_SHORTCUT).parent().get();
             switch (e.which) {
               case 49: // Ctrl + 1
                 shortcutNumber = 1;
@@ -745,7 +769,12 @@ var apexSpotlight = {
       apexSpotlight.createSpotlightDialog(apexSpotlight.gPlaceholderText);
       openDialog();
       apexSpotlight.getSpotlightData(function(data) {
-        apexSpotlight.gSearchIndex = data;
+        apexSpotlight.gSearchIndex = $.grep(data, function(e) {
+          return e.s == false;
+        });
+        apexSpotlight.gStaticIndex = $.grep(data, function(e) {
+          return e.s == true;
+        });
       });
     }
     focusElement = pFocusElement; // could be useful for shortcuts added by apex.action

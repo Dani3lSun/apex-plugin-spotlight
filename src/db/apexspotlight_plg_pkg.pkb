@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.2.0
+ * Version: 1.2.1
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -132,6 +132,15 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
         -- icon
         apex_json.write('i',
                         l_column_value_list(4).value_list(i).varchar2_value);
+        -- if URL contains ~SEARCH_VALUE~, make list entry static
+        IF instr(l_column_value_list(3).value_list(i).varchar2_value,
+                 '~SEARCH_VALUE~') > 0 THEN
+          apex_json.write('s',
+                          TRUE);
+        ELSE
+          apex_json.write('s',
+                          FALSE);
+        END IF;
         -- type
         apex_json.write('t',
                         'redirect');
