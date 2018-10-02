@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.2.1
+ * Version: 1.2.2
  */
 
 /**
@@ -846,6 +846,28 @@ var apexSpotlight = {
     apex.debug.log('apexSpotlight.pluginHandler - width', width);
     apex.debug.log('apexSpotlight.pluginHandler - enableDataCache', enableDataCache);
 
+    // polyfill for older browsers like IE (startsWith & includes functions)
+    if (!String.prototype.startsWith) {
+      String.prototype.startsWith = function(search, pos) {
+        return this.substr(!pos || pos < 0 ? 0 : +pos, search.length) === search;
+      };
+    }
+    if (!String.prototype.includes) {
+      String.prototype.includes = function(search, start) {
+        'use strict';
+        if (typeof start !== 'number') {
+          start = 0;
+        }
+
+        if (start + search.length > this.length) {
+          return false;
+        } else {
+          return this.indexOf(search, start) !== -1;
+        }
+      };
+    }
+
+    // Enable local data cache
     if (enableDataCache == 'Y') {
       apexSpotlight.gEnableDataCache = true;
     } else {

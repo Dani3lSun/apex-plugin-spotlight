@@ -6,6 +6,8 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
+#### 1.2.2 - Fixed IE issue for non working string methods > polyfill for string.startsWith & string.includes
+
 #### 1.2.1 - URLs containing substitution string (\~SEARCH_VALUE\~) are now shown as static list entries which are always present
 
 #### 1.2.0 - Added possibility to include a substitution string (\~SEARCH_VALUE\~) in the target link or URL, which gets replaced with the actual search keyword
