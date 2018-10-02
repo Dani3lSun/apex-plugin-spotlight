@@ -6,6 +6,8 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
+#### 1.2.3 - Allow up to 9 shortcuts (ctrl + 1, ctrl + 2, ...) for static list entries / prevent default browser shortcuts and always prefer spotlight search / allow shortcuts even if focus is e.g. on an input field
+
 #### 1.2.2 - Fixed IE issue for non working string methods > polyfill for string.startsWith & string.includes
 
 #### 1.2.1 - URLs containing substitution string (\~SEARCH_VALUE\~) are now shown as static list entries which are always present

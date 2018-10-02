@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.2.2
+ * Version: 1.2.3
  */
 
 /**
@@ -322,7 +322,7 @@ var apexSpotlight = {
 
     for (var i = 0; i < apexSpotlight.gStaticIndex.length; i++) {
       shortcutCounter = shortcutCounter + 1;
-      if (shortcutCounter > 4) {
+      if (shortcutCounter > 9) {
         results.push({
           n: apexSpotlight.gStaticIndex[i].n,
           u: apexSpotlight.gStaticIndex[i].u,
@@ -615,7 +615,7 @@ var apexSpotlight = {
         })
         .on('keydown', apexSpotlight.DOT + apexSpotlight.SP_DIALOG, function(e) {
           var results$ = $(apexSpotlight.DOT + apexSpotlight.SP_RESULTS),
-            last4Results,
+            last9Results,
             shortcutNumber;
 
           // up/down arrows
@@ -640,8 +640,8 @@ var apexSpotlight = {
           }
 
           if (e.ctrlKey) {
-            // supports Ctrl + 1, 2, 3, 4 shortcuts
-            last4Results = results$.find(apexSpotlight.DOT + apexSpotlight.SP_SHORTCUT).parent().get();
+            // supports Ctrl + 1, 2, 3, 4, 5, 6, 7, 8, 9 shortcuts
+            last9Results = results$.find(apexSpotlight.DOT + apexSpotlight.SP_SHORTCUT).parent().get();
             switch (e.which) {
               case 49: // Ctrl + 1
                 shortcutNumber = 1;
@@ -657,10 +657,30 @@ var apexSpotlight = {
               case 52: // Ctrl + 4
                 shortcutNumber = 4;
                 break;
+
+              case 53: // Ctrl + 5
+                shortcutNumber = 5;
+                break;
+
+              case 54: // Ctrl + 6
+                shortcutNumber = 6;
+                break;
+
+              case 55: // Ctrl + 7
+                shortcutNumber = 7;
+                break;
+
+              case 56: // Ctrl + 8
+                shortcutNumber = 8;
+                break;
+
+              case 57: // Ctrl + 9
+                shortcutNumber = 9;
+                break;
             }
 
             if (shortcutNumber) {
-              apexSpotlight.goTo($(last4Results[shortcutNumber - 1]), e);
+              apexSpotlight.goTo($(last9Results[shortcutNumber - 1]), e);
             }
           }
 
@@ -784,7 +804,24 @@ var apexSpotlight = {
    * @param {object} pFocusElement
    */
   openSpotlightDialogKeyboardShortcut: function(pFocusElement) {
+    // disable default behavior to not bind in input fields
+    Mousetrap.stopCallback = function(e, element, combo) {
+      return true;
+    };
+    Mousetrap.prototype.stopCallback = function(e, element, combo) {
+      return false;
+    };
+
+    // bind moustrap to keyboard shortcut
     Mousetrap.bind(apexSpotlight.gKeyboardShortcutsArray, function(e) {
+      // prevent default behavior
+      if (e.preventDefault) {
+        e.preventDefault();
+      } else {
+        // internet explorer
+        e.returnValue = false;
+      }
+      // open spotlight dialog
       apexSpotlight.openSpotlightDialog(pFocusElement);
     });
   },

@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.2.2
+ * Version: 1.2.3
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -115,7 +115,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                                                         p_component_name => p_dynamic_action.action);
       -- loop over SQL Source results and write json
       apex_json.open_array();
-      -- 
+      --
       l_row_count := l_column_value_list(1).value_list.count;
       --
       FOR i IN 1 .. l_row_count LOOP
@@ -177,7 +177,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
         apex_json.write('url',
                         l_url_new);
         apex_json.close_object;
-        -- if checks don´t succeed return input URL back
+        -- if checks donï¿½t succeed return input URL back
       ELSE
         apex_json.open_object;
         apex_json.write('url',
