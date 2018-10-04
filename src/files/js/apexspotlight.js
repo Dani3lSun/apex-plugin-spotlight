@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.2.3
+ * Version: 1.3.0
  */
 
 /**
@@ -51,6 +51,8 @@ var apexSpotlight = {
   gEnableDataCache: false,
   gSubmitItemsArray: [],
   gKeyboardShortcutsArray: [],
+  gResultListThemeClass: '',
+  gIconThemeClass: '',
   /**
    * Get JSON containing data for spotlight search entries from DB
    * @param {function} callback
@@ -286,9 +288,9 @@ var apexSpotlight = {
       iconString = 'a-Icon icon-search';
     }
 
-    out = '<li class="apx-Spotlight-result apx-Spotlight-result--page">' +
+    out = '<li class="apx-Spotlight-result ' + apexSpotlight.gResultListThemeClass + ' apx-Spotlight-result--page">' +
       '<span class="apx-Spotlight-link" ' + dataAttr + '>' +
-      '<span class="apx-Spotlight-icon" aria-hidden="true">' +
+      '<span class="apx-Spotlight-icon ' + apexSpotlight.gIconThemeClass + '" aria-hidden="true">' +
       '<span class="' + iconString + '"></span>' +
       '</span>' +
       '<span class="apx-Spotlight-info">' +
@@ -325,6 +327,7 @@ var apexSpotlight = {
       if (shortcutCounter > 9) {
         results.push({
           n: apexSpotlight.gStaticIndex[i].n,
+          d: apexSpotlight.gStaticIndex[i].d,
           u: apexSpotlight.gStaticIndex[i].u,
           i: apexSpotlight.gStaticIndex[i].i,
           t: apexSpotlight.gStaticIndex[i].t
@@ -332,6 +335,7 @@ var apexSpotlight = {
       } else {
         results.push({
           n: apexSpotlight.gStaticIndex[i].n,
+          d: apexSpotlight.gStaticIndex[i].d,
           u: apexSpotlight.gStaticIndex[i].u,
           i: apexSpotlight.gStaticIndex[i].i,
           t: apexSpotlight.gStaticIndex[i].t,
@@ -863,6 +867,7 @@ var apexSpotlight = {
     var maxNavResult = apexSpotlight.gMaxNavResult = daThis.action.attribute12;
     var width = apexSpotlight.gWidth = daThis.action.attribute13;
     var enableDataCache = daThis.action.attribute14;
+    var spotlightTheme = daThis.action.attribute15;
 
     var keyboardShortcutsArray = [];
     var submitItemsArray = [];
@@ -882,6 +887,7 @@ var apexSpotlight = {
     apex.debug.log('apexSpotlight.pluginHandler - maxNavResult', maxNavResult);
     apex.debug.log('apexSpotlight.pluginHandler - width', width);
     apex.debug.log('apexSpotlight.pluginHandler - enableDataCache', enableDataCache);
+    apex.debug.log('apexSpotlight.pluginHandler - spotlightTheme', spotlightTheme);
 
     // polyfill for older browsers like IE (startsWith & includes functions)
     if (!String.prototype.startsWith) {
@@ -919,6 +925,18 @@ var apexSpotlight = {
     // build keyboard shortcuts array
     if (enableKeyboardShortcuts == 'Y') {
       keyboardShortcutsArray = apexSpotlight.gKeyboardShortcutsArray = keyboardShortcuts.split(',');
+    }
+
+    // set spotlight theme
+    if (spotlightTheme == 'ORANGE') {
+      apexSpotlight.gResultListThemeClass = 'apx-Spotlight-result-orange';
+      apexSpotlight.gIconThemeClass = 'apx-Spotlight-icon-orange';
+    } else if (spotlightTheme == 'RED') {
+      apexSpotlight.gResultListThemeClass = 'apx-Spotlight-result-red';
+      apexSpotlight.gIconThemeClass = 'apx-Spotlight-icon-red';
+    } else if (spotlightTheme == 'DARK') {
+      apexSpotlight.gResultListThemeClass = 'apx-Spotlight-result-dark';
+      apexSpotlight.gIconThemeClass = 'apx-Spotlight-icon-dark';
     }
 
     // open dialog

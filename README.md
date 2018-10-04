@@ -10,6 +10,8 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
+#### 1.3.0 - Added Spotlight Search themes (Standard, Orange, Red, Dark) / static list entries with description / PL/SQL code cleanup
+
 #### 1.2.3 - Allow up to 9 shortcuts (ctrl + 1, ctrl + 2, ...) for static list entries / prevent default browser shortcuts and always prefer spotlight search / allow shortcuts even if focus is e.g. on an input field
 
 #### 1.2.2 - Fixed IE issue for non working string methods > polyfill for string.startsWith & string.includes
@@ -52,6 +54,7 @@ The plugin settings are highly customizable and you can change:
 - **Enable In-Page Search** - Enable in-page search to highlight found results on the current page depending on the search keyword
 - **Max. Search Display Results** - The maximum allowed search results displayed at once
 - **Width** - Width of the Spotlight search dialog. Enter either numbers for pixel values or percentage values
+- **Theme** - Choose the Spotlight Search theme which best matches your current UI
 
 
 ## Plugin Events

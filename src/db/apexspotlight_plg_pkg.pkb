@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.2.3
+ * Version: 1.3.0
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -30,7 +30,10 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     l_enable_inpage_search      VARCHAR2(5) := p_dynamic_action.attribute_05;
     l_max_display_results       NUMBER := to_number(p_dynamic_action.attribute_06);
     l_width                     p_dynamic_action.attribute_07%TYPE := p_dynamic_action.attribute_07;
-    l_enable_data_cache         VARCHAR2(5) := p_dynamic_action.attribute_08;
+    l_enable_data_cache         VARCHAR2(5) := nvl(p_dynamic_action.attribute_08,
+                                                   'N');
+    l_theme                     p_dynamic_action.attribute_09%TYPE := nvl(p_dynamic_action.attribute_09,
+                                                                          'STANDARD');
     --
   BEGIN
     -- Debug
@@ -74,6 +77,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     l_result.attribute_12 := l_max_display_results;
     l_result.attribute_13 := l_width;
     l_result.attribute_14 := l_enable_data_cache;
+    l_result.attribute_15 := l_theme;
     --
     RETURN l_result;
     --
@@ -89,20 +93,16 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     --
     l_result apex_plugin.t_dynamic_action_ajax_result;
     --
-    l_data_source_sql_query p_dynamic_action.attribute_03%TYPE := p_dynamic_action.attribute_03;
-    l_data_type_list        apex_application_global.vc_arr2;
-    l_column_value_list     apex_plugin_util.t_column_value_list2;
-    l_row_count             NUMBER;
-    l_request_type          VARCHAR2(50);
-    l_search_value          VARCHAR2(1000);
-    l_url                   VARCHAR2(4000);
-    l_url_new               VARCHAR2(4000);
+    l_request_type VARCHAR2(50);
     --
-  BEGIN
-    -- Check request type in X01
-    l_request_type := apex_application.g_x01;
-    -- GET_DATA Request
-    IF l_request_type = 'GET_DATA' THEN
+    -- Execute Spotlight GET_DATA Request
+    PROCEDURE exec_get_data_request(p_dynamic_action IN apex_plugin.t_dynamic_action,
+                                    p_plugin         IN apex_plugin.t_plugin) IS
+      l_data_source_sql_query p_dynamic_action.attribute_03%TYPE := p_dynamic_action.attribute_03;
+      l_data_type_list        apex_application_global.vc_arr2;
+      l_column_value_list     apex_plugin_util.t_column_value_list2;
+      l_row_count             NUMBER;
+    BEGIN
       -- Data Types of SQL Source Columns
       l_data_type_list(1) := apex_plugin_util.c_data_type_varchar2;
       l_data_type_list(2) := apex_plugin_util.c_data_type_varchar2;
@@ -148,8 +148,15 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
       END LOOP;
       --
       apex_json.close_array;
-      -- GET_URL Request
-    ELSIF l_request_type = 'GET_URL' THEN
+    END;
+    --
+    -- Execute Spotlight GET_URL Request
+    PROCEDURE exec_get_url_request(p_dynamic_action IN apex_plugin.t_dynamic_action,
+                                   p_plugin         IN apex_plugin.t_plugin) IS
+      l_search_value VARCHAR2(1000);
+      l_url          VARCHAR2(4000);
+      l_url_new      VARCHAR2(4000);
+    BEGIN
       -- get values from AJAX call X02/X03
       l_search_value := apex_application.g_x02;
       l_url          := apex_application.g_x03;
@@ -184,6 +191,19 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                         l_url);
         apex_json.close_object;
       END IF;
+    END;
+    --
+  BEGIN
+    -- Check request type in X01
+    l_request_type := apex_application.g_x01;
+    -- GET_DATA Request
+    IF l_request_type = 'GET_DATA' THEN
+      exec_get_data_request(p_dynamic_action => p_dynamic_action,
+                            p_plugin         => p_plugin);
+      -- GET_URL Request
+    ELSIF l_request_type = 'GET_URL' THEN
+      exec_get_url_request(p_dynamic_action => p_dynamic_action,
+                           p_plugin         => p_plugin);
       --
     END IF;
     --

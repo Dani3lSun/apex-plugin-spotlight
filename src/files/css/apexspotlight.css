@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/css/core/Spotlight.css
- * Version: 1.2.3
+ * Version: 1.3.0
  */
 .apx-Spotlight {
   display: flex;
@@ -54,11 +54,11 @@ body.apex-spotlight-active {
 .apx-Spotlight-result.is-active .apx-Spotlight-link {
   text-decoration: none;
   background-color: #0572CE;
-  color: #FFF;
+  color: #fff;
 }
 
 .apx-Spotlight-result.is-active .apx-Spotlight-link .apx-Spotlight-desc, .apx-Spotlight-result.is-active .apx-Spotlight-link .apx-Spotlight-shortcut {
-  color: #FFF;
+  color: #fff;
 }
 
 .apx-Spotlight-result.is-active .apx-Spotlight-link .apx-Spotlight-shortcut {
@@ -123,10 +123,10 @@ body.apex-spotlight-active {
   padding: 8px;
   width: 32px;
   height: 32px;
-  box-shadow: 0 0 0 1px #FFF;
+  box-shadow: 0 0 0 1px #fff;
   border-radius: 2px;
   background-color: #399bea;
-  color: #FFF;
+  color: #fff;
 }
 
 .apx-Spotlight-result--app .apx-Spotlight-icon {
@@ -178,4 +178,38 @@ body .ui-dialog.ui-dialog--apexspotlight .ui-dialog-titlebar {
   .apx-Spotlight-results {
     max-height: 390px;
   }
+}
+
+/* APEX Spotlight Search Orange Theme */
+.apx-Spotlight-result-orange.is-active .apx-Spotlight-link {
+  background-color: #f59e33;
+  color: #fff;
+}
+
+.apx-Spotlight-icon-orange {
+  background-color: #79787e;
+  color: #fff;
+}
+
+/* APEX Spotlight Search Red Theme */
+.apx-Spotlight-result-red.is-active .apx-Spotlight-link {
+  background-color: #da1b1b;
+  color: #fff;
+}
+
+.apx-Spotlight-icon-red {
+  background-color: #606060;
+  color: #fff;
+}
+
+/* APEX Spotlight Search Dark Theme */
+.apx-Spotlight-result-dark.is-active .apx-Spotlight-link {
+  background-color: #323336;
+  color: #fff;
+}
+
+.apx-Spotlight-icon-dark {
+  background-color: #e6e6e6;
+  color: #404040;
+  box-shadow: 0 0 0 1px #404040;
 }
