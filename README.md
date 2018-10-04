@@ -85,6 +85,23 @@ SELECT aap.page_title AS title
  ORDER BY aap.page_id
 ```
 
+```language-sql
+SELECT aale.entry_text AS title
+      ,CASE
+         WHEN aale.parent_entry_text IS NULL THEN
+          'Application > ' || aale.entry_text
+         ELSE
+          'Application > ' || aale.parent_entry_text || ' > ' ||
+          aale.entry_text
+       END AS description
+      ,apex_util.prepare_url(p_url => apex_plugin_util.replace_substitutions(p_value => aale.entry_target)) AS link
+      ,nvl(aale.entry_image
+          ,'fa-file-o') AS icon
+  FROM apex_application_list_entries aale
+ WHERE aale.application_id = :app_id
+   AND aale.list_name = 'Desktop Navigation Menu'
+```
+
 **Use the search keyword in your link target or URL using substitution string "\~SEARCH_VALUE\~"**
 
 *Note: If an URL contains the substitution string "\~SEARCH_VALUE\~" the resulting list entry is always shown*
@@ -106,6 +123,34 @@ SELECT 'Set a item' AS title
       ,'Set item with search keyword on client side' AS description
       ,'javascript:$s(''P1_ITEM'',''~SEARCH_VALUE~'');' AS link
       ,'fa-home' AS icon
+  FROM dual
+```
+
+```language-sql
+-- navigation menu list
+SELECT aale.entry_text AS title
+      ,CASE
+         WHEN aale.parent_entry_text IS NULL THEN
+          'Application > ' || aale.entry_text
+         ELSE
+          'Application > ' || aale.parent_entry_text || ' > ' ||
+          aale.entry_text
+       END AS description
+      ,apex_util.prepare_url(p_url => apex_plugin_util.replace_substitutions(p_value => aale.entry_target)) AS link
+      ,nvl(aale.entry_image
+          ,'fa-file-o') AS icon
+  FROM apex_application_list_entries aale
+ WHERE aale.application_id = :app_id
+   AND aale.list_name = 'Desktop Navigation Menu'
+UNION ALL
+-- static entry --> app wide search
+SELECT 'Search Application' AS title
+      ,'Search for customers, products, orders or tags...' AS description
+      ,apex_page.get_url(p_page        => 30
+                        ,p_clear_cache => 30
+                        ,p_items       => 'P30_SEARCH'
+                        ,p_values      => '~SEARCH_VALUE~') AS link
+      ,'fa-search' AS icon
   FROM dual
 ```
 
