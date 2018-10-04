@@ -10,6 +10,8 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
+#### 1.3.1 - Fixed validation of SQL query when column has a wrong data type / improved error handling of AJAX calls
+
 #### 1.3.0 - Added Spotlight Search themes (Standard, Orange, Red, Dark) / static list entries with description / PL/SQL code cleanup
 
 #### 1.2.3 - Allow up to 9 shortcuts (ctrl + 1, ctrl + 2, ...) for static list entries / prevent default browser shortcuts and always prefer spotlight search / allow shortcuts even if focus is e.g. on an input field

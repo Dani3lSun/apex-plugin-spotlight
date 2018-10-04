@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.3.0
+ * Version: 1.3.1
  */
 
 /**
@@ -80,11 +80,11 @@ var apexSpotlight = {
           }
           callback(data);
         },
-        error: function(xhr, pMessage) {
+        error: function(jqXHR, textStatus, errorThrown) {
           apex.event.trigger('body', 'apexspotlight-ajax-error', {
-            "message": pMessage
+            "message": errorThrown
           });
-          apex.debug.log("apexSpotlight.getSpotlightData AJAX Error", pMessage);
+          apex.debug.log("apexSpotlight.getSpotlightData AJAX Error", errorThrown);
           callback([]);
         }
       });
@@ -113,8 +113,8 @@ var apexSpotlight = {
           apex.debug.log("apexSpotlight.getProperApexUrl AJAX Success", data);
           callback(data);
         },
-        error: function(xhr, pMessage) {
-          apex.debug.log("apexSpotlight.getProperApexUrl AJAX Error", pMessage);
+        error: function(jqXHR, textStatus, errorThrown) {
+          apex.debug.log("apexSpotlight.getProperApexUrl AJAX Error", errorThrown);
           callback({
             "url": pUrl
           });

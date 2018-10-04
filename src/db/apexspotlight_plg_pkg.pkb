@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.3.0
+ * Version: 1.3.1
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -112,6 +112,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
       l_column_value_list := apex_plugin_util.get_data2(p_sql_statement  => l_data_source_sql_query,
                                                         p_min_columns    => 4,
                                                         p_max_columns    => 4,
+                                                        p_data_type_list => l_data_type_list,
                                                         p_component_name => p_dynamic_action.action);
       -- loop over SQL Source results and write json
       apex_json.open_array();
@@ -169,7 +170,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
         l_url := REPLACE(l_url,
                          '~SEARCH_VALUE~',
                          l_search_value);
-        -- only if input URL already contains a checksum > remove checksum
+        -- if input URL already contains a checksum > remove checksum
         IF instr(l_url,
                  '&cs=') > 0 THEN
           l_url := substr(l_url,
@@ -184,7 +185,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
         apex_json.write('url',
                         l_url_new);
         apex_json.close_object;
-        -- if checks don�t succeed return input URL back
+        -- if checks don't succeed return input URL back
       ELSE
         apex_json.open_object;
         apex_json.write('url',
