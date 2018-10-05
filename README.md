@@ -10,6 +10,8 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
+#### 1.3.3 - Better escaping of some problematic characters in substitution string (\~SEARCH_VALUE\~)
+
 #### 1.3.2 - Added new option to automatically prefill spotlight search input with selected, marked text / general code cleanup
 
 #### 1.3.1 - Fixed validation of SQL query when column has a wrong data type / improved error handling of AJAX calls

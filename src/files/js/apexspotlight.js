@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.3.2
+ * Version: 1.3.3
  */
 
 /**
@@ -170,11 +170,11 @@ var apexSpotlight = {
     var range;
     if (window.getSelection) {
       range = window.getSelection();
-      return range.toString();
+      return range.toString().trim();
     } else {
       if (document.selection.createRange) {
         range = document.selection.createRange();
-        return range.text;
+        return range.text.trim();
       }
     }
   },
@@ -274,6 +274,8 @@ var apexSpotlight = {
       case apexSpotlight.URL_TYPES.redirect:
         // replace ~SEARCH_VALUE~ substitution string
         if (url.includes('~SEARCH_VALUE~')) {
+          // escape some problematic chars :,"'
+          apexSpotlight.gKeywords = apexSpotlight.gKeywords.replace(/:|,|"|'/g, ' ').trim();
           // server side if APEX URL is detected
           if (url.startsWith('f?p=')) {
             apexSpotlight.getProperApexUrl(url, function(data) {
@@ -977,15 +979,19 @@ var apexSpotlight = {
     }
 
     // set spotlight theme
-    if (spotlightTheme == 'ORANGE') {
-      apexSpotlight.gResultListThemeClass = 'apx-Spotlight-result-orange';
-      apexSpotlight.gIconThemeClass = 'apx-Spotlight-icon-orange';
-    } else if (spotlightTheme == 'RED') {
-      apexSpotlight.gResultListThemeClass = 'apx-Spotlight-result-red';
-      apexSpotlight.gIconThemeClass = 'apx-Spotlight-icon-red';
-    } else if (spotlightTheme == 'DARK') {
-      apexSpotlight.gResultListThemeClass = 'apx-Spotlight-result-dark';
-      apexSpotlight.gIconThemeClass = 'apx-Spotlight-icon-dark';
+    switch (spotlightTheme) {
+      case 'ORANGE':
+        apexSpotlight.gResultListThemeClass = 'apx-Spotlight-result-orange';
+        apexSpotlight.gIconThemeClass = 'apx-Spotlight-icon-orange';
+        break;
+      case 'RED':
+        apexSpotlight.gResultListThemeClass = 'apx-Spotlight-result-red';
+        apexSpotlight.gIconThemeClass = 'apx-Spotlight-icon-red';
+        break;
+      case 'DARK':
+        apexSpotlight.gResultListThemeClass = 'apx-Spotlight-result-dark';
+        apexSpotlight.gIconThemeClass = 'apx-Spotlight-icon-dark';
+        break;
     }
 
     // open dialog
