@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.3.1
+ * Version: 1.3.2
  */
 
 /**
@@ -49,6 +49,7 @@ var apexSpotlight = {
   gInPageSearchText: null,
   gEnableInPageSearch: true,
   gEnableDataCache: false,
+  gEnablePrefillSelectedText: false,
   gSubmitItemsArray: [],
   gKeyboardShortcutsArray: [],
   gResultListThemeClass: '',
@@ -161,6 +162,42 @@ var apexSpotlight = {
       storageValue = sessionStorage.getItem(apexSession + '.data');
     }
     return storageValue;
+  },
+  /**
+   * Get text of selected text on document
+   */
+  getSelectedText: function() {
+    var range;
+    if (window.getSelection) {
+      range = window.getSelection();
+      return range.toString();
+    } else {
+      if (document.selection.createRange) {
+        range = document.selection.createRange();
+        return range.text;
+      }
+    }
+  },
+  /**
+   * Fetch selected text and set it to spotlight search input
+   */
+  setSelectedText: function() {
+    // get selected text
+    var selectedText = apexSpotlight.getSelectedText();
+
+    // set selected text to spotlight input
+    if (selectedText) {
+      // if dialog & data already there
+      if (apexSpotlight.gHasDialogCreated) {
+        $(apexSpotlight.DOT + apexSpotlight.SP_INPUT).val(selectedText).trigger('input');
+        // dialog has to be opened & data must be fetched
+      } else {
+        // not until data has been in place
+        $('body').on('apexspotlight-get-data', function() {
+          $(apexSpotlight.DOT + apexSpotlight.SP_INPUT).val(selectedText).trigger('input');
+        });
+      }
+    }
   },
   /**
    * Handle aria attributes
@@ -311,7 +348,7 @@ var apexSpotlight = {
 
     var shortcutCounter = 0;
 
-    if (apexSpotlight.gEnableInPageSearch == 'Y') {
+    if (apexSpotlight.gEnableInPageSearch) {
       results.push({
         n: apexSpotlight.gInPageSearchText,
         u: '',
@@ -746,6 +783,11 @@ var apexSpotlight = {
       return false;
     }
 
+    // set selected text to spotlight input
+    if (apexSpotlight.gEnablePrefillSelectedText) {
+      apexSpotlight.setSelectedText();
+    }
+
     apexSpotlight.gHasDialogCreated = $(apexSpotlight.DOT + apexSpotlight.SP_DIALOG).length > 0;
 
     var openDialog = function() {
@@ -799,6 +841,7 @@ var apexSpotlight = {
         apexSpotlight.gStaticIndex = $.grep(data, function(e) {
           return e.s == true;
         });
+        apex.event.trigger('body', 'apexspotlight-get-data', data);
       });
     }
     focusElement = pFocusElement; // could be useful for shortcuts added by apex.action
@@ -848,38 +891,44 @@ var apexSpotlight = {
   },
   /**
    * Plugin handler - called from plugin render function
+   * @param {object} pOptions
    */
-  pluginHandler: function() {
+  pluginHandler: function(pOptions) {
     // plugin attributes
-    var daThis = this;
-    var ajaxIdentifier = apexSpotlight.gAjaxIdentifier = daThis.action.ajaxIdentifier;
-    var placeholderText = apexSpotlight.gPlaceholderText = daThis.action.attribute01;
-    var moreCharsText = apexSpotlight.gMoreCharsText = daThis.action.attribute02;
-    var noMatchText = apexSpotlight.gNoMatchText = daThis.action.attribute03;
-    var oneMatchText = apexSpotlight.gOneMatchText = daThis.action.attribute04;
-    var multipleMatchesText = apexSpotlight.gMultipleMatchesText = daThis.action.attribute05;
-    var inPageSearchText = apexSpotlight.gInPageSearchText = daThis.action.attribute06;
+    var dynamicActionId = apexSpotlight.gDynamicActionId = pOptions.dynamicActionId;
+    var ajaxIdentifier = apexSpotlight.gAjaxIdentifier = pOptions.ajaxIdentifier;
 
-    var enableKeyboardShortcuts = daThis.action.attribute08;
-    var keyboardShortcuts = daThis.action.attribute09;
-    var submitItems = daThis.action.attribute10;
-    var enableInPageSearch = apexSpotlight.gEnableInPageSearch = daThis.action.attribute11;
-    var maxNavResult = apexSpotlight.gMaxNavResult = daThis.action.attribute12;
-    var width = apexSpotlight.gWidth = daThis.action.attribute13;
-    var enableDataCache = daThis.action.attribute14;
-    var spotlightTheme = daThis.action.attribute15;
+    var placeholderText = apexSpotlight.gPlaceholderText = pOptions.placeholderText;
+    var moreCharsText = apexSpotlight.gMoreCharsText = pOptions.moreCharsText;
+    var noMatchText = apexSpotlight.gNoMatchText = pOptions.noMatchText;
+    var oneMatchText = apexSpotlight.gOneMatchText = pOptions.oneMatchText;
+    var multipleMatchesText = apexSpotlight.gMultipleMatchesText = pOptions.multipleMatchesText;
+    var inPageSearchText = apexSpotlight.gInPageSearchText = pOptions.inPageSearchText;
+
+    var enableKeyboardShortcuts = pOptions.enableKeyboardShortcuts;
+    var keyboardShortcuts = pOptions.keyboardShortcuts;
+    var submitItems = pOptions.submitItems;
+    var enableInPageSearch = pOptions.enableInPageSearch;
+    var maxNavResult = apexSpotlight.gMaxNavResult = pOptions.maxNavResult;
+    var width = apexSpotlight.gWidth = pOptions.width;
+    var enableDataCache = pOptions.enableDataCache;
+    var spotlightTheme = pOptions.spotlightTheme;
+    var enablePrefillSelectedText = pOptions.enablePrefillSelectedText;
 
     var keyboardShortcutsArray = [];
     var submitItemsArray = [];
 
     // debug
+    apex.debug.log('apexSpotlight.pluginHandler - dynamicActionId', dynamicActionId);
     apex.debug.log('apexSpotlight.pluginHandler - ajaxIdentifier', ajaxIdentifier);
+
     apex.debug.log('apexSpotlight.pluginHandler - placeholderText', placeholderText);
     apex.debug.log('apexSpotlight.pluginHandler - moreCharsText', moreCharsText);
     apex.debug.log('apexSpotlight.pluginHandler - noMatchText', noMatchText);
     apex.debug.log('apexSpotlight.pluginHandler - oneMatchText', oneMatchText);
     apex.debug.log('apexSpotlight.pluginHandler - multipleMatchesText', multipleMatchesText);
     apex.debug.log('apexSpotlight.pluginHandler - inPageSearchText', inPageSearchText);
+
     apex.debug.log('apexSpotlight.pluginHandler - enableKeyboardShortcuts', enableKeyboardShortcuts);
     apex.debug.log('apexSpotlight.pluginHandler - keyboardShortcuts', keyboardShortcuts);
     apex.debug.log('apexSpotlight.pluginHandler - submitItems', submitItems);
@@ -888,6 +937,7 @@ var apexSpotlight = {
     apex.debug.log('apexSpotlight.pluginHandler - width', width);
     apex.debug.log('apexSpotlight.pluginHandler - enableDataCache', enableDataCache);
     apex.debug.log('apexSpotlight.pluginHandler - spotlightTheme', spotlightTheme);
+    apex.debug.log('apexSpotlight.pluginHandler - enablePrefillSelectedText', enablePrefillSelectedText);
 
     // polyfill for older browsers like IE (startsWith & includes functions)
     if (!String.prototype.startsWith) {
@@ -910,12 +960,11 @@ var apexSpotlight = {
       };
     }
 
-    // Enable local data cache
-    if (enableDataCache == 'Y') {
-      apexSpotlight.gEnableDataCache = true;
-    } else {
-      apexSpotlight.gEnableDataCache = false;
-    }
+    // set boolean global vars
+    apexSpotlight.gEnableInPageSearch = (enableInPageSearch == 'Y') ? true : false;
+    apexSpotlight.gEnableDataCache = (enableDataCache == 'Y') ? true : false;
+    apexSpotlight.gEnablePrefillSelectedText = (enablePrefillSelectedText == 'Y') ? true : false;
+
 
     // build page items to submit array
     if (submitItems) {
@@ -941,9 +990,9 @@ var apexSpotlight = {
 
     // open dialog
     if (enableKeyboardShortcuts == 'Y') {
-      apexSpotlight.openSpotlightDialogKeyboardShortcut($('body'));
+      apexSpotlight.openSpotlightDialogKeyboardShortcut();
     } else {
-      apexSpotlight.openSpotlightDialog($('body'));
+      apexSpotlight.openSpotlightDialog();
     }
   }
 };

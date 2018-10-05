@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.3.1
+ * Version: 1.3.2
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -24,16 +24,22 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     l_multiple_matches_text p_plugin.attribute_05%TYPE := p_plugin.attribute_05;
     l_inpage_search_text    p_plugin.attribute_06%TYPE := p_plugin.attribute_06;
     --
-    l_enable_keyboard_shortcuts VARCHAR2(5) := p_dynamic_action.attribute_01;
-    l_keyboard_shortcuts        p_dynamic_action.attribute_02%TYPE := p_dynamic_action.attribute_02;
-    l_submit_items              p_dynamic_action.attribute_04%TYPE := p_dynamic_action.attribute_04;
-    l_enable_inpage_search      VARCHAR2(5) := p_dynamic_action.attribute_05;
-    l_max_display_results       NUMBER := to_number(p_dynamic_action.attribute_06);
-    l_width                     p_dynamic_action.attribute_07%TYPE := p_dynamic_action.attribute_07;
-    l_enable_data_cache         VARCHAR2(5) := nvl(p_dynamic_action.attribute_08,
-                                                   'N');
-    l_theme                     p_dynamic_action.attribute_09%TYPE := nvl(p_dynamic_action.attribute_09,
-                                                                          'STANDARD');
+    l_enable_keyboard_shortcuts    VARCHAR2(5) := nvl(p_dynamic_action.attribute_01,
+                                                      'N');
+    l_keyboard_shortcuts           p_dynamic_action.attribute_02%TYPE := p_dynamic_action.attribute_02;
+    l_submit_items                 p_dynamic_action.attribute_04%TYPE := p_dynamic_action.attribute_04;
+    l_enable_inpage_search         VARCHAR2(5) := nvl(p_dynamic_action.attribute_05,
+                                                      'Y');
+    l_max_display_results          NUMBER := to_number(p_dynamic_action.attribute_06);
+    l_width                        p_dynamic_action.attribute_07%TYPE := p_dynamic_action.attribute_07;
+    l_enable_data_cache            VARCHAR2(5) := nvl(p_dynamic_action.attribute_08,
+                                                      'N');
+    l_theme                        p_dynamic_action.attribute_09%TYPE := nvl(p_dynamic_action.attribute_09,
+                                                                             'STANDARD');
+    l_enable_prefill_selected_text VARCHAR2(5) := nvl(p_dynamic_action.attribute_10,
+                                                      'N');
+    --
+    l_component_config_json CLOB := empty_clob();
     --
   BEGIN
     -- Debug
@@ -60,24 +66,52 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                                   p_skip_extension        => FALSE,
                                   p_check_to_add_minified => TRUE);
     END IF;
+    -- build component config json
+    apex_json.initialize_clob_output;
+    apex_json.open_object();
+    -- general
+    apex_json.write('dynamicActionId',
+                    p_dynamic_action.id);
+    apex_json.write('ajaxIdentifier',
+                    apex_plugin.get_ajax_identifier);
+    -- app wide attributes
+    apex_json.write('placeholderText',
+                    l_placeholder_text);
+    apex_json.write('moreCharsText',
+                    l_more_chars_text);
+    apex_json.write('noMatchText',
+                    l_no_match_text);
+    apex_json.write('oneMatchText',
+                    l_one_match_text);
+    apex_json.write('multipleMatchesText',
+                    l_multiple_matches_text);
+    apex_json.write('inPageSearchText',
+                    l_inpage_search_text);
+    -- component attributes
+    apex_json.write('enableKeyboardShortcuts',
+                    l_enable_keyboard_shortcuts);
+    apex_json.write('keyboardShortcuts',
+                    l_keyboard_shortcuts);
+    apex_json.write('submitItems',
+                    l_submit_items);
+    apex_json.write('enableInPageSearch',
+                    l_enable_inpage_search);
+    apex_json.write('maxNavResult',
+                    l_max_display_results);
+    apex_json.write('width',
+                    l_width);
+    apex_json.write('enableDataCache',
+                    l_enable_data_cache);
+    apex_json.write('spotlightTheme',
+                    l_theme);
+    apex_json.write('enablePrefillSelectedText',
+                    l_enable_prefill_selected_text);
+    apex_json.close_object();
     --
-    l_result.javascript_function := 'apexSpotlight.pluginHandler';
-    l_result.ajax_identifier     := apex_plugin.get_ajax_identifier;
-    l_result.attribute_01        := l_placeholder_text;
-    l_result.attribute_02        := l_more_chars_text;
-    l_result.attribute_03        := l_no_match_text;
-    l_result.attribute_04        := l_one_match_text;
-    l_result.attribute_05        := l_multiple_matches_text;
-    l_result.attribute_06        := l_inpage_search_text;
+    l_component_config_json := apex_json.get_clob_output;
     --
-    l_result.attribute_08 := l_enable_keyboard_shortcuts;
-    l_result.attribute_09 := l_keyboard_shortcuts;
-    l_result.attribute_10 := l_submit_items;
-    l_result.attribute_11 := l_enable_inpage_search;
-    l_result.attribute_12 := l_max_display_results;
-    l_result.attribute_13 := l_width;
-    l_result.attribute_14 := l_enable_data_cache;
-    l_result.attribute_15 := l_theme;
+    l_result.javascript_function := 'function() { apexSpotlight.pluginHandler(' ||
+                                    l_component_config_json || '); }';
     --
     RETURN l_result;
     --

@@ -10,6 +10,8 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
+#### 1.3.2 - Added new option to automatically prefill spotlight search input with selected, marked text / general code cleanup
+
 #### 1.3.1 - Fixed validation of SQL query when column has a wrong data type / improved error handling of AJAX calls
 
 #### 1.3.0 - Added Spotlight Search themes (Standard, Orange, Red, Dark) / static list entries with description / PL/SQL code cleanup
@@ -54,6 +56,7 @@ The plugin settings are highly customizable and you can change:
 - **Page Items to Submit** - Enter page or application items to be set into session state when the SQL query is executed via an AJAX request
 - **Enable Local Data Cache** - Enable data cache to save the complete server response (from Data Source AJAX call) in session storage of browser. This helps to reduce calls from browser to server side
 - **Enable In-Page Search** - Enable in-page search to highlight found results on the current page depending on the search keyword
+- **Enable Prefill Selected Text** - Enable prefill selected text to automatically set the spotlight search input to your selected / marked text when it opens
 - **Max. Search Display Results** - The maximum allowed search results displayed at once
 - **Width** - Width of the Spotlight search dialog. Enter either numbers for pixel values or percentage values
 - **Theme** - Choose the Spotlight Search theme which best matches your current UI
