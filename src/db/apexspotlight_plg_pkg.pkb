@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.3.3
+ * Version: 1.3.4
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -110,7 +110,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     --
     l_component_config_json := apex_json.get_clob_output;
     --
-    l_result.javascript_function := 'function() { apexSpotlight.pluginHandler(' ||
+    l_result.javascript_function := 'function() { apex.da.apexSpotlight.pluginHandler(' ||
                                     l_component_config_json || '); }';
     --
     RETURN l_result;
