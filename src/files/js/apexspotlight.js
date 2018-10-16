@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.3.4
+ * Version: 1.3.5
  */
 
 /**
@@ -63,6 +63,7 @@ apex.da.apexSpotlight = {
       gKeyboardShortcutsArray: [],
       gResultListThemeClass: '',
       gIconThemeClass: '',
+      gShowProcessing: false,
       /**
        * Get JSON containing data for spotlight search entries from DB
        * @param {function} callback
@@ -77,6 +78,7 @@ apex.da.apexSpotlight = {
           }
         }
         try {
+          apexSpotlight.showWaitSpinner();
           apex.server.plugin(apexSpotlight.gAjaxIdentifier, {
             pageItems: apexSpotlight.gSubmitItemsArray,
             x01: 'GET_DATA'
@@ -88,6 +90,7 @@ apex.da.apexSpotlight = {
               if (apexSpotlight.gEnableDataCache) {
                 apexSpotlight.setSpotlightDataSessionStorage(JSON.stringify(data));
               }
+              apexSpotlight.hideWaitSpinner();
               callback(data);
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -95,6 +98,7 @@ apex.da.apexSpotlight = {
                 "message": errorThrown
               });
               apex.debug.log("apexSpotlight.getSpotlightData AJAX Error", errorThrown);
+              apexSpotlight.hideWaitSpinner();
               callback([]);
             }
           });
@@ -103,6 +107,7 @@ apex.da.apexSpotlight = {
             "message": err
           });
           apex.debug.log("apexSpotlight.getSpotlightData AJAX Error", err);
+          apexSpotlight.hideWaitSpinner();
           callback([]);
         }
       },
@@ -171,6 +176,22 @@ apex.da.apexSpotlight = {
           storageValue = sessionStorage.getItem(apexSession + '.data');
         }
         return storageValue;
+      },
+      /**
+       * Show wait spinner to show progress of AJAX call
+       */
+      showWaitSpinner: function() {
+        if (apexSpotlight.gShowProcessing) {
+          $('div.apx-Spotlight-icon span').removeClass().addClass('fa fa-refresh fa-anim-spin');
+        }
+      },
+      /**
+       * Hide wait spinner and display default search icon
+       */
+      hideWaitSpinner: function() {
+        if (apexSpotlight.gShowProcessing) {
+          $('div.apx-Spotlight-icon span').removeClass().addClass('a-Icon icon-search');
+        }
       },
       /**
        * Get text of selected text on document
@@ -925,6 +946,7 @@ apex.da.apexSpotlight = {
         var enableDataCache = pOptions.enableDataCache;
         var spotlightTheme = pOptions.spotlightTheme;
         var enablePrefillSelectedText = pOptions.enablePrefillSelectedText;
+        var showProcessing = pOptions.showProcessing;
 
         var keyboardShortcutsArray = [];
         var submitItemsArray = [];
@@ -949,6 +971,7 @@ apex.da.apexSpotlight = {
         apex.debug.log('apexSpotlight.pluginHandler - enableDataCache', enableDataCache);
         apex.debug.log('apexSpotlight.pluginHandler - spotlightTheme', spotlightTheme);
         apex.debug.log('apexSpotlight.pluginHandler - enablePrefillSelectedText', enablePrefillSelectedText);
+        apex.debug.log('apexSpotlight.pluginHandler - showProcessing', showProcessing);
 
         // polyfill for older browsers like IE (startsWith & includes functions)
         if (!String.prototype.startsWith) {
@@ -975,6 +998,7 @@ apex.da.apexSpotlight = {
         apexSpotlight.gEnableInPageSearch = (enableInPageSearch == 'Y') ? true : false;
         apexSpotlight.gEnableDataCache = (enableDataCache == 'Y') ? true : false;
         apexSpotlight.gEnablePrefillSelectedText = (enablePrefillSelectedText == 'Y') ? true : false;
+        apexSpotlight.gShowProcessing = (showProcessing == 'Y') ? true : false;
 
 
         // build page items to submit array

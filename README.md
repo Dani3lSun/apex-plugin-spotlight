@@ -10,6 +10,8 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
+#### 1.3.5 - Added option to show a waiting indicator for processing AJAX call
+
 #### 1.3.4 - Reorganized JavaScript structure (instead of public namespace, extend apex.da with private functions)
 
 #### 1.3.3 - Better escaping of some problematic characters in substitution string (\~SEARCH_VALUE\~)
@@ -58,6 +60,7 @@ The plugin settings are highly customizable and you can change:
   - **Column 3:** - Link / URL
   - **Column 4:** - Icon
 - **Page Items to Submit** - Enter page or application items to be set into session state when the SQL query is executed via an AJAX request
+- **Show Processing** - Specify whether a waiting / processing indicator is displayed or not. This will replace the default search icon with an spinner as long as data is fetched from database
 - **Enable Local Data Cache** - Enable data cache to save the complete server response (from Data Source AJAX call) in session storage of browser. This helps to reduce calls from browser to server side
 - **Enable In-Page Search** - Enable in-page search to highlight found results on the current page depending on the search keyword
 - **Enable Prefill Selected Text** - Enable prefill selected text to automatically set the spotlight search input to your selected / marked text when it opens

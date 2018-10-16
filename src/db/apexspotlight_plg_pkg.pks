@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.3.4
+ * Version: 1.3.5
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */

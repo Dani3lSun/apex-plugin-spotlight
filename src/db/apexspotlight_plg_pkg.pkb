@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.3.4
+ * Version: 1.3.5
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -37,6 +37,8 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     l_theme                        p_dynamic_action.attribute_09%TYPE := nvl(p_dynamic_action.attribute_09,
                                                                              'STANDARD');
     l_enable_prefill_selected_text VARCHAR2(5) := nvl(p_dynamic_action.attribute_10,
+                                                      'N');
+    l_show_processing              VARCHAR2(5) := nvl(p_dynamic_action.attribute_11,
                                                       'N');
     --
     l_component_config_json CLOB := empty_clob();
@@ -106,6 +108,8 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                     l_theme);
     apex_json.write('enablePrefillSelectedText',
                     l_enable_prefill_selected_text);
+    apex_json.write('showProcessing',
+                    l_show_processing);
     apex_json.close_object();
     --
     l_component_config_json := apex_json.get_clob_output;
