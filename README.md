@@ -10,6 +10,8 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
+#### 1.3.6 - If "Show Processing" option is on, also display a waiting spinner when redirecting to APEX pages
+
 #### 1.3.5 - Added option to show a waiting indicator for processing AJAX call
 
 #### 1.3.4 - Reorganized JavaScript structure (instead of public namespace, extend apex.da with private functions)

@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.3.5
+ * Version: 1.3.6
  */
 
 /**
@@ -64,6 +64,7 @@ apex.da.apexSpotlight = {
       gResultListThemeClass: '',
       gIconThemeClass: '',
       gShowProcessing: false,
+      gWaitSpinner$: null,
       /**
        * Get JSON containing data for spotlight search entries from DB
        * @param {function} callback
@@ -230,6 +231,36 @@ apex.da.apexSpotlight = {
         }
       },
       /**
+       * Wrapper for apex.navigation.redirect to optionally show a waiting spinner before redirecting
+       * @param {string} pWhere
+       */
+      redirect: function(pWhere) {
+        if (apexSpotlight.gShowProcessing) {
+          try {
+            // no waiting spinner for javascript targets
+            if (pWhere.startsWith('javascript:')) {
+              apex.navigation.redirect(pWhere);
+            } else {
+              // only show spinner if not already present and if it´s an APEX target page and no client side validation errors occured and the page has not changed
+              if ($('span.u-Processing').length == 0 &&
+                pWhere.startsWith('f?p=') &&
+                apex.page.validate() &&
+                !apex.page.isChanged()) {
+                apexSpotlight.gWaitSpinner$ = apex.util.showSpinner($('body'));
+              }
+              apex.navigation.redirect(pWhere);
+            }
+          } catch (err) {
+            if (apexSpotlight.gWaitSpinner$) {
+              apexSpotlight.gWaitSpinner$.remove();
+            }
+            apex.navigation.redirect(pWhere);
+          }
+        } else {
+          apex.navigation.redirect(pWhere);
+        }
+      },
+      /**
        * Handle aria attributes
        */
       handleAriaAttr: function() {
@@ -254,7 +285,7 @@ apex.da.apexSpotlight = {
           .attr('aria-selected', 'true');
 
         if (apexSpotlight.gKeywords === '') {
-          liveText = apexSpotlight.gPlaceholderText;
+          liveText = apexSpotlight.gMoreCharsText;
         } else if (resultsCount === 0) {
           liveText = apexSpotlight.gNoMatchText;
         } else if (resultsCount === 1) {
@@ -309,16 +340,16 @@ apex.da.apexSpotlight = {
               // server side if APEX URL is detected
               if (url.startsWith('f?p=')) {
                 apexSpotlight.getProperApexUrl(url, function(data) {
-                  apex.navigation.redirect(data.url);
+                  apexSpotlight.redirect(data.url);
                 });
                 // client side for all other URLs
               } else {
                 url = url.replace('~SEARCH_VALUE~', apexSpotlight.gKeywords);
-                apex.navigation.redirect(url);
+                apexSpotlight.redirect(url);
               }
               // normal URL without substitution string
             } else {
-              apex.navigation.redirect(url);
+              apexSpotlight.redirect(url);
             }
             break;
         }
