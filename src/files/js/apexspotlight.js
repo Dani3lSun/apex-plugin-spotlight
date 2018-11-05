@@ -2,13 +2,53 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.3.6
+ * Version: 1.4.0
  */
 
 /**
  * Extend apex.da
  */
 apex.da.apexSpotlight = {
+  /**
+   * Init keyboard shortcuts on page load
+   * @param {object} pOptions
+   */
+  initKeyboardShortcuts: function(pOptions) {
+    // change default event
+    pOptions.eventName = 'keyboardShortcut';
+
+    // debug
+    apex.debug.log('apexSpotlight.initKeyBoardShortcuts - pOptions', pOptions);
+
+    var enableKeyboardShortcuts = pOptions.enableKeyboardShortcuts;
+    var keyboardShortcuts = pOptions.keyboardShortcuts;
+    var keyboardShortcutsArray = [];
+
+    if (enableKeyboardShortcuts == 'Y') {
+      keyboardShortcutsArray = keyboardShortcuts.split(',');
+
+      // disable default behavior to not bind in input fields
+      Mousetrap.stopCallback = function(e, element, combo) {
+        return false;
+      };
+      Mousetrap.prototype.stopCallback = function(e, element, combo) {
+        return false;
+      };
+
+      // bind moustrap to keyboard shortcut
+      Mousetrap.bind(keyboardShortcutsArray, function(e) {
+        // prevent default behavior
+        if (e.preventDefault) {
+          e.preventDefault();
+        } else {
+          // internet explorer
+          e.returnValue = false;
+        }
+        // call main plugin handler
+        apex.da.apexSpotlight.pluginHandler(pOptions);
+      });
+    }
+  },
   /**
    * Plugin handler - called from plugin render function
    * @param {object} pOptions
@@ -60,7 +100,6 @@ apex.da.apexSpotlight = {
       gEnableDataCache: false,
       gEnablePrefillSelectedText: false,
       gSubmitItemsArray: [],
-      gKeyboardShortcutsArray: [],
       gResultListThemeClass: '',
       gIconThemeClass: '',
       gShowProcessing: false,
@@ -910,32 +949,6 @@ apex.da.apexSpotlight = {
         focusElement = pFocusElement; // could be useful for shortcuts added by apex.action
       },
       /**
-       * Open Spotlight Dialog via Moustrap keyboard shortcut
-       * @param {object} pFocusElement
-       */
-      openSpotlightDialogKeyboardShortcut: function(pFocusElement) {
-        // disable default behavior to not bind in input fields
-        Mousetrap.stopCallback = function(e, element, combo) {
-          return true;
-        };
-        Mousetrap.prototype.stopCallback = function(e, element, combo) {
-          return false;
-        };
-
-        // bind moustrap to keyboard shortcut
-        Mousetrap.bind(apexSpotlight.gKeyboardShortcutsArray, function(e) {
-          // prevent default behavior
-          if (e.preventDefault) {
-            e.preventDefault();
-          } else {
-            // internet explorer
-            e.returnValue = false;
-          }
-          // open spotlight dialog
-          apexSpotlight.openSpotlightDialog(pFocusElement);
-        });
-      },
-      /**
        * In-Page search using mark.js
        * @param {string} pKeyword
        */
@@ -960,6 +973,8 @@ apex.da.apexSpotlight = {
         // plugin attributes
         var dynamicActionId = apexSpotlight.gDynamicActionId = pOptions.dynamicActionId;
         var ajaxIdentifier = apexSpotlight.gAjaxIdentifier = pOptions.ajaxIdentifier;
+        var eventName = pOptions.eventName;
+        var fireOnInit = pOptions.fireOnInit;
 
         var placeholderText = apexSpotlight.gPlaceholderText = pOptions.placeholderText;
         var moreCharsText = apexSpotlight.gMoreCharsText = pOptions.moreCharsText;
@@ -979,12 +994,14 @@ apex.da.apexSpotlight = {
         var enablePrefillSelectedText = pOptions.enablePrefillSelectedText;
         var showProcessing = pOptions.showProcessing;
 
-        var keyboardShortcutsArray = [];
         var submitItemsArray = [];
+        var openDialog = true;
 
         // debug
         apex.debug.log('apexSpotlight.pluginHandler - dynamicActionId', dynamicActionId);
         apex.debug.log('apexSpotlight.pluginHandler - ajaxIdentifier', ajaxIdentifier);
+        apex.debug.log('apexSpotlight.pluginHandler - eventName', eventName);
+        apex.debug.log('apexSpotlight.pluginHandler - fireOnInit', fireOnInit);
 
         apex.debug.log('apexSpotlight.pluginHandler - placeholderText', placeholderText);
         apex.debug.log('apexSpotlight.pluginHandler - moreCharsText', moreCharsText);
@@ -1037,11 +1054,6 @@ apex.da.apexSpotlight = {
           submitItemsArray = apexSpotlight.gSubmitItemsArray = submitItems.split(',');
         }
 
-        // build keyboard shortcuts array
-        if (enableKeyboardShortcuts == 'Y') {
-          keyboardShortcutsArray = apexSpotlight.gKeyboardShortcutsArray = keyboardShortcuts.split(',');
-        }
-
         // set spotlight theme
         switch (spotlightTheme) {
           case 'ORANGE':
@@ -1058,10 +1070,17 @@ apex.da.apexSpotlight = {
             break;
         }
 
-        // open dialog
-        if (enableKeyboardShortcuts == 'Y') {
-          apexSpotlight.openSpotlightDialogKeyboardShortcut();
+        // checks for opening dialog
+        if (eventName == 'keyboardShortcut' || fireOnInit == 'Y') {
+          openDialog = true;
+        } else if (eventName == 'ready') {
+          openDialog = false;
         } else {
+          openDialog = true;
+        }
+
+        // open dialog
+        if (openDialog) {
           apexSpotlight.openSpotlightDialog();
         }
       }

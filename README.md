@@ -10,6 +10,8 @@ APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It
 
 ## Changelog
 
+#### 1.4.0 - Now you can use spotlight search on DA events + keyboard shortcut in a single DA
+
 #### 1.3.6 - If "Show Processing" option is on, also display a waiting spinner when redirecting to APEX pages
 
 #### 1.3.5 - Added option to show a waiting indicator for processing AJAX call
@@ -83,8 +85,6 @@ The plugin settings are highly customizable and you can change:
 - New DA on an certain event, e.g *Page Load* or *Click*
 - New Action: *APEX Spotlight Search*
 - Choose best fitting settings
-
-*Enable Keyboard Shortcuts should be used when the DA executes on page load!*
 
 
 #### Sample SQL Query for data source

@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.3.6
+ * Version: 1.4.0
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -43,6 +43,64 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     --
     l_component_config_json CLOB := empty_clob();
     --
+    -- Get DA internal event name
+    FUNCTION get_da_event_name(p_action_id IN NUMBER) RETURN VARCHAR2 IS
+      --
+      l_da_event_name apex_application_page_da.when_event_internal_name%TYPE;
+      l_app_id        NUMBER;
+      --
+      CURSOR l_cur_da_event IS
+        SELECT aapd.when_event_internal_name
+          FROM apex_application_page_da      aapd,
+               apex_application_page_da_acts aapda
+         WHERE aapd.dynamic_action_id = aapda.dynamic_action_id
+           AND aapd.application_id = l_app_id
+           AND aapda.action_id = p_action_id;
+      --
+    BEGIN
+      --
+      l_app_id := apex_util.get_numeric_session_state('APP_ID');
+      --
+      OPEN l_cur_da_event;
+      FETCH l_cur_da_event
+        INTO l_da_event_name;
+      CLOSE l_cur_da_event;
+      --
+      RETURN nvl(l_da_event_name,
+                 'ready');
+      --
+    END get_da_event_name;
+    --
+    -- Get DA Fire on Initialization property
+    FUNCTION get_da_fire_on_init(p_action_id IN NUMBER) RETURN VARCHAR2 IS
+      --
+      l_da_fire_on_init apex_application_page_da_acts.execute_on_page_init%TYPE;
+      l_app_id          NUMBER;
+      --
+      CURSOR l_cur_da_fire_on_init IS
+        SELECT decode(aapda.execute_on_page_init,
+                      'Yes',
+                      'Y',
+                      'No',
+                      'N') AS execute_on_page_init
+          FROM apex_application_page_da_acts aapda
+         WHERE aapda.application_id = l_app_id
+           AND aapda.action_id = p_action_id;
+      --
+    BEGIN
+      --
+      l_app_id := apex_util.get_numeric_session_state('APP_ID');
+      --
+      OPEN l_cur_da_fire_on_init;
+      FETCH l_cur_da_fire_on_init
+        INTO l_da_fire_on_init;
+      CLOSE l_cur_da_fire_on_init;
+      --
+      RETURN nvl(l_da_fire_on_init,
+                 'N');
+      --
+    END get_da_fire_on_init;
+    --
   BEGIN
     -- Debug
     IF apex_application.g_debug THEN
@@ -76,6 +134,10 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                     p_dynamic_action.id);
     apex_json.write('ajaxIdentifier',
                     apex_plugin.get_ajax_identifier);
+    apex_json.write('eventName',
+                    get_da_event_name(p_action_id => p_dynamic_action.id));
+    apex_json.write('fireOnInit',
+                    get_da_fire_on_init(p_action_id => p_dynamic_action.id));
     -- app wide attributes
     apex_json.write('placeholderText',
                     l_placeholder_text);
@@ -113,7 +175,18 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     apex_json.close_object();
     --
     l_component_config_json := apex_json.get_clob_output;
-    --
+    -- init keyboard shortcut
+    IF l_enable_keyboard_shortcuts = 'Y' THEN
+      apex_javascript.add_inline_code(p_code => 'function apexSpotlightInitKeyboardShortcuts' ||
+                                                p_dynamic_action.id ||
+                                                '() { apex.da.apexSpotlight.initKeyboardShortcuts(' ||
+                                                l_component_config_json ||
+                                                '); }');
+      apex_javascript.add_onload_code(p_code => 'apexSpotlightInitKeyboardShortcuts' ||
+                                                p_dynamic_action.id ||
+                                                '();');
+    END IF;
+    -- DA javascript function
     l_result.javascript_function := 'function() { apex.da.apexSpotlight.pluginHandler(' ||
                                     l_component_config_json || '); }';
     --
@@ -187,7 +260,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
       END LOOP;
       --
       apex_json.close_array;
-    END;
+    END exec_get_data_request;
     --
     -- Execute Spotlight GET_URL Request
     PROCEDURE exec_get_url_request(p_dynamic_action IN apex_plugin.t_dynamic_action,
@@ -230,7 +303,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                         l_url);
         apex_json.close_object;
       END IF;
-    END;
+    END exec_get_url_request;
     --
   BEGIN
     -- Check request type in X01
