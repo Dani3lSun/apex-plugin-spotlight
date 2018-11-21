@@ -5,44 +5,30 @@
 
 APEX Spotlight Search is a powerful search feature (like on MacOS) to search. It provides quick navigation and unified search experience across an APEX application.
 
+
+- [Oracle APEX Dynamic Action Plugin - APEX Spotlight Search](#oracle-apex-dynamic-action-plugin-apex-spotlight-search)
+	- [Preview](#preview)
+	- [Install](#install)
+	- [Plugin Settings](#plugin-settings)
+		- [Application settings](#application-settings)
+		- [Component settings](#component-settings)
+	- [Plugin Events](#plugin-events)
+	- [How to use](#how-to-use)
+			- [Sample SQL Query for data source](#sample-sql-query-for-data-source)
+	- [Demo Application](#demo-application)
+	- [Changelog](#changelog)
+	- [License](#license)
+
+
 ## Preview
 ![](https://github.com/Dani3lSun/apex-plugin-spotlight/blob/master/preview.gif)
-
-## Changelog
-
-#### 1.4.0 - Now you can use spotlight search on DA events + keyboard shortcut in a single DA
-
-#### 1.3.6 - If "Show Processing" option is on, also display a waiting spinner when redirecting to APEX pages
-
-#### 1.3.5 - Added option to show a waiting indicator for processing AJAX call
-
-#### 1.3.4 - Reorganized JavaScript structure (instead of public namespace, extend apex.da with private functions)
-
-#### 1.3.3 - Better escaping of some problematic characters in substitution string (\~SEARCH_VALUE\~)
-
-#### 1.3.2 - Added new option to automatically prefill spotlight search input with selected, marked text / general code cleanup
-
-#### 1.3.1 - Fixed validation of SQL query when column has a wrong data type / improved error handling of AJAX calls
-
-#### 1.3.0 - Added Spotlight Search themes (Standard, Orange, Red, Dark) / static list entries with description / PL/SQL code cleanup
-
-#### 1.2.3 - Allow up to 9 shortcuts (ctrl + 1, ctrl + 2, ...) for static list entries / prevent default browser shortcuts and always prefer spotlight search / allow shortcuts even if focus is e.g. on an input field
-
-#### 1.2.2 - Fixed IE issue for non working string methods > polyfill for string.startsWith & string.includes
-
-#### 1.2.1 - URLs containing substitution string (\~SEARCH_VALUE\~) are now shown as static list entries which are always present
-
-#### 1.2.0 - Added possibility to include a substitution string (\~SEARCH_VALUE\~) in the target link or URL, which gets replaced with the actual search keyword
-
-#### 1.1.0 - Added possibility to cache server response in browsers session storage (reduce number of AJAX calls)
-
-#### 1.0.0 - Initial Release
 
 
 ## Install
 - Import plugin file "dynamic_action_plugin_de_danielh_apexspotlight.sql" from **dist** directory into your application
 - *Optional:* Deploy the JS/CSS files from **src/files** directory on your web server and change the "Plugin File Prefix" to web servers folder path.
 - *Optional:* Compile the plugin PL/SQL package in your APEX parsing schema and change the plugin render/ajax function to include the package object name. The package files are located in **src/db** directory.
+
 
 ## Plugin Settings
 The plugin settings are highly customizable and you can change:
@@ -174,6 +160,37 @@ SELECT 'Search Application' AS title
 
 ## Demo Application
 https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
+
+
+## Changelog
+
+#### 1.4.0 - Now you can use spotlight search on DA events + keyboard shortcut in a single DA
+
+#### 1.3.6 - If "Show Processing" option is on, also display a waiting spinner when redirecting to APEX pages
+
+#### 1.3.5 - Added option to show a waiting indicator for processing AJAX call
+
+#### 1.3.4 - Reorganized JavaScript structure (instead of public namespace, extend apex.da with private functions)
+
+#### 1.3.3 - Better escaping of some problematic characters in substitution string (\~SEARCH_VALUE\~)
+
+#### 1.3.2 - Added new option to automatically prefill spotlight search input with selected, marked text / general code cleanup
+
+#### 1.3.1 - Fixed validation of SQL query when column has a wrong data type / improved error handling of AJAX calls
+
+#### 1.3.0 - Added Spotlight Search themes (Standard, Orange, Red, Dark) / static list entries with description / PL/SQL code cleanup
+
+#### 1.2.3 - Allow up to 9 shortcuts (ctrl + 1, ctrl + 2, ...) for static list entries / prevent default browser shortcuts and always prefer spotlight search / allow shortcuts even if focus is e.g. on an input field
+
+#### 1.2.2 - Fixed IE issue for non working string methods > polyfill for string.startsWith & string.includes
+
+#### 1.2.1 - URLs containing substitution string (\~SEARCH_VALUE\~) are now shown as static list entries which are always present
+
+#### 1.2.0 - Added possibility to include a substitution string (\~SEARCH_VALUE\~) in the target link or URL, which gets replaced with the actual search keyword
+
+#### 1.1.0 - Added possibility to cache server response in browsers session storage (reduce number of AJAX calls)
+
+#### 1.0.0 - Initial Release
 
 
 ## License
