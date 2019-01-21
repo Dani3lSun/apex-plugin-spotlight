@@ -164,6 +164,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
+#### 1.4.1 - Fixed bug there prefill selected text only worked once / also execute search and list results when AJAX call is still running when typing
+
 #### 1.4.0 - Now you can use spotlight search on DA events + keyboard shortcut in a single DA
 
 #### 1.3.6 - If "Show Processing" option is on, also display a waiting spinner when redirecting to APEX pages

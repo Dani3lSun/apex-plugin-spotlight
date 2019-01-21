@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.4.0
+ * Version: 1.4.1
  */
 
 /**
@@ -406,9 +406,11 @@ apex.da.apexSpotlight = {
           type = data.type,
           icon = data.icon,
           shortcut = data.shortcut,
+          static = data.static,
           shortcutMarkup = shortcut ? '<span class="' + apexSpotlight.SP_SHORTCUT + '" >' + shortcut + '</span>' : '',
           dataAttr = '',
           iconString = '',
+          indexType = '',
           out;
 
         if (url === 0 || url) {
@@ -427,7 +429,14 @@ apex.da.apexSpotlight = {
           iconString = 'a-Icon icon-search';
         }
 
-        out = '<li class="apx-Spotlight-result ' + apexSpotlight.gResultListThemeClass + ' apx-Spotlight-result--page">' +
+        // is it a static entry or a dynamic search result
+        if (static) {
+          indexType = 'STATIC';
+        } else {
+          indexType = 'DYNAMIC';
+        }
+
+        out = '<li class="apx-Spotlight-result ' + apexSpotlight.gResultListThemeClass + ' apx-Spotlight-result--page apx-Spotlight-' + indexType + '">' +
           '<span class="apx-Spotlight-link" ' + dataAttr + '>' +
           '<span class="apx-Spotlight-icon ' + apexSpotlight.gIconThemeClass + '" aria-hidden="true">' +
           '<span class="' + iconString + '"></span>' +
@@ -456,7 +465,8 @@ apex.da.apexSpotlight = {
             u: '',
             i: apexSpotlight.ICONS.page,
             t: apexSpotlight.URL_TYPES.searchPage,
-            shortcut: 'Ctrl + 1'
+            shortcut: 'Ctrl + 1',
+            s: true
           });
           shortcutCounter = shortcutCounter + 1;
         }
@@ -469,7 +479,8 @@ apex.da.apexSpotlight = {
               d: apexSpotlight.gStaticIndex[i].d,
               u: apexSpotlight.gStaticIndex[i].u,
               i: apexSpotlight.gStaticIndex[i].i,
-              t: apexSpotlight.gStaticIndex[i].t
+              t: apexSpotlight.gStaticIndex[i].t,
+              s: apexSpotlight.gStaticIndex[i].s
             });
           } else {
             results.push({
@@ -478,6 +489,7 @@ apex.da.apexSpotlight = {
               u: apexSpotlight.gStaticIndex[i].u,
               i: apexSpotlight.gStaticIndex[i].i,
               t: apexSpotlight.gStaticIndex[i].t,
+              s: apexSpotlight.gStaticIndex[i].s,
               shortcut: 'Ctrl + ' + shortcutCounter
             });
           }
@@ -561,6 +573,7 @@ apex.da.apexSpotlight = {
             type,
             shortcut,
             icon,
+            static,
             entry = {};
 
           if (res.length > apexSpotlight.gMaxNavResult) {
@@ -573,13 +586,15 @@ apex.da.apexSpotlight = {
             shortcut = item.shortcut;
             type = item.t || apexSpotlight.URL_TYPES.redirect;
             icon = item.i || apexSpotlight.ICONS.search;
+            static = item.s || false;
 
             entry = {
               title: item.n,
               desc: item.d,
               url: item.u,
               icon: icon,
-              type: type
+              type: type,
+              static: static
             };
 
             if (shortcut) {
@@ -885,12 +900,12 @@ apex.da.apexSpotlight = {
           return false;
         }
 
+        apexSpotlight.gHasDialogCreated = $(apexSpotlight.DOT + apexSpotlight.SP_DIALOG).length > 0;
+
         // set selected text to spotlight input
         if (apexSpotlight.gEnablePrefillSelectedText) {
           apexSpotlight.setSelectedText();
         }
-
-        apexSpotlight.gHasDialogCreated = $(apexSpotlight.DOT + apexSpotlight.SP_DIALOG).length > 0;
 
         var openDialog = function() {
           var dlg$ = $(apexSpotlight.DOT + apexSpotlight.SP_DIALOG),
@@ -964,6 +979,14 @@ apex.da.apexSpotlight = {
             });
           }
         });
+      },
+      /**
+       * Check if resultset markup has dynamic list entries (not static)
+       * @return {boolean}
+       */
+      hasSearchResultsDynamicEntries: function() {
+        var hasDynamicEntries = $('li.apx-Spotlight-result').hasClass('apx-Spotlight-DYNAMIC') || false;
+        return hasDynamicEntries;
       },
       /**
        * Real Plugin handler - called from outer pluginHandler function
@@ -1078,6 +1101,17 @@ apex.da.apexSpotlight = {
         } else {
           openDialog = true;
         }
+
+        // trigger input and search again --> if search input has some value and getData request has finshed
+        $('body').on('apexspotlight-get-data', function() {
+          if (apexSpotlight.gHasDialogCreated && (!apexSpotlight.hasSearchResultsDynamicEntries())) {
+            var searchValue = $(apexSpotlight.DOT + apexSpotlight.SP_INPUT).val().trim();
+            if (searchValue) {
+              apexSpotlight.search(searchValue);
+              $(apexSpotlight.DOT + apexSpotlight.SP_INPUT).trigger('input');
+            }
+          }
+        });
 
         // open dialog
         if (openDialog) {
