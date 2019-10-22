@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.4.1
+ * Version: 1.5.0
  */
 
 /**
@@ -103,6 +103,7 @@ apex.da.apexSpotlight = {
       gResultListThemeClass: '',
       gIconThemeClass: '',
       gShowProcessing: false,
+      gPlaceHolderIcon: 'a-Icon icon-search',
       gWaitSpinner$: null,
       /**
        * Get JSON containing data for spotlight search entries from DB
@@ -230,7 +231,7 @@ apex.da.apexSpotlight = {
        */
       hideWaitSpinner: function() {
         if (apexSpotlight.gShowProcessing) {
-          $('div.apx-Spotlight-icon span').removeClass().addClass('a-Icon icon-search');
+          $('div.apx-Spotlight-icon span').removeClass().addClass(apexSpotlight.gPlaceHolderIcon);
         }
       },
       /**
@@ -405,12 +406,14 @@ apex.da.apexSpotlight = {
           url = data.url,
           type = data.type,
           icon = data.icon,
+          iconColor = data.iconColor,
           shortcut = data.shortcut,
           static = data.static,
           shortcutMarkup = shortcut ? '<span class="' + apexSpotlight.SP_SHORTCUT + '" >' + shortcut + '</span>' : '',
           dataAttr = '',
           iconString = '',
           indexType = '',
+          iconColorString = '',
           out;
 
         if (url === 0 || url) {
@@ -436,9 +439,13 @@ apex.da.apexSpotlight = {
           indexType = 'DYNAMIC';
         }
 
+        if (iconColor) {
+          iconColorString = 'style="background-color:' + iconColor + '"';
+        }
+
         out = '<li class="apx-Spotlight-result ' + apexSpotlight.gResultListThemeClass + ' apx-Spotlight-result--page apx-Spotlight-' + indexType + '">' +
           '<span class="apx-Spotlight-link" ' + dataAttr + '>' +
-          '<span class="apx-Spotlight-icon ' + apexSpotlight.gIconThemeClass + '" aria-hidden="true">' +
+          '<span class="apx-Spotlight-icon ' + apexSpotlight.gIconThemeClass + '" ' + iconColorString + ' aria-hidden="true">' +
           '<span class="' + iconString + '"></span>' +
           '</span>' +
           '<span class="apx-Spotlight-info">' +
@@ -464,6 +471,7 @@ apex.da.apexSpotlight = {
             n: apexSpotlight.gInPageSearchText,
             u: '',
             i: apexSpotlight.ICONS.page,
+            ic: null,
             t: apexSpotlight.URL_TYPES.searchPage,
             shortcut: 'Ctrl + 1',
             s: true
@@ -479,6 +487,7 @@ apex.da.apexSpotlight = {
               d: apexSpotlight.gStaticIndex[i].d,
               u: apexSpotlight.gStaticIndex[i].u,
               i: apexSpotlight.gStaticIndex[i].i,
+              ic: apexSpotlight.gStaticIndex[i].ic,
               t: apexSpotlight.gStaticIndex[i].t,
               s: apexSpotlight.gStaticIndex[i].s
             });
@@ -488,6 +497,7 @@ apex.da.apexSpotlight = {
               d: apexSpotlight.gStaticIndex[i].d,
               u: apexSpotlight.gStaticIndex[i].u,
               i: apexSpotlight.gStaticIndex[i].i,
+              ic: apexSpotlight.gStaticIndex[i].ic,
               t: apexSpotlight.gStaticIndex[i].t,
               s: apexSpotlight.gStaticIndex[i].s,
               shortcut: 'Ctrl + ' + shortcutCounter
@@ -573,6 +583,7 @@ apex.da.apexSpotlight = {
             type,
             shortcut,
             icon,
+            iconColor,
             static,
             entry = {};
 
@@ -587,12 +598,16 @@ apex.da.apexSpotlight = {
             type = item.t || apexSpotlight.URL_TYPES.redirect;
             icon = item.i || apexSpotlight.ICONS.search;
             static = item.s || false;
+            if (item.ic !== 'DEFAULT') {
+              iconColor = item.ic;
+            }
 
             entry = {
               title: item.n,
               desc: item.d,
               url: item.u,
               icon: icon,
+              iconColor: iconColor,
               type: type,
               static: static
             };
@@ -745,7 +760,7 @@ apex.da.apexSpotlight = {
               '<div class="apx-Spotlight-body">' +
               '<div class="apx-Spotlight-search">' +
               '<div class="apx-Spotlight-icon">' +
-              '<span class="a-Icon icon-search" aria-hidden="true"></span>' +
+              '<span class="' + apexSpotlight.gPlaceHolderIcon + '" aria-hidden="true"></span>' +
               '</div>' +
               '<div class="apx-Spotlight-field">' +
               '<input type="text" role="combobox" aria-expanded="false" aria-autocomplete="none" aria-haspopup="true" aria-label="Spotlight Search" aria-owns="' + apexSpotlight.SP_LIST + '" autocomplete="off" autocorrect="off" spellcheck="false" class="' + apexSpotlight.SP_INPUT + '" placeholder="' + pPlaceHolder + '">' +
@@ -1016,6 +1031,7 @@ apex.da.apexSpotlight = {
         var spotlightTheme = pOptions.spotlightTheme;
         var enablePrefillSelectedText = pOptions.enablePrefillSelectedText;
         var showProcessing = pOptions.showProcessing;
+        var placeHolderIcon = pOptions.placeHolderIcon;
 
         var submitItemsArray = [];
         var openDialog = true;
@@ -1043,6 +1059,7 @@ apex.da.apexSpotlight = {
         apex.debug.log('apexSpotlight.pluginHandler - spotlightTheme', spotlightTheme);
         apex.debug.log('apexSpotlight.pluginHandler - enablePrefillSelectedText', enablePrefillSelectedText);
         apex.debug.log('apexSpotlight.pluginHandler - showProcessing', showProcessing);
+        apex.debug.log('apexSpotlight.pluginHandler - placeHolderIcon', placeHolderIcon);
 
         // polyfill for older browsers like IE (startsWith & includes functions)
         if (!String.prototype.startsWith) {
@@ -1091,6 +1108,13 @@ apex.da.apexSpotlight = {
             apexSpotlight.gResultListThemeClass = 'apx-Spotlight-result-dark';
             apexSpotlight.gIconThemeClass = 'apx-Spotlight-icon-dark';
             break;
+        }
+
+        // set search placeholder icon
+        if (placeHolderIcon === 'DEFAULT') {
+          apexSpotlight.gPlaceHolderIcon = 'a-Icon icon-search';
+        } else {
+          apexSpotlight.gPlaceHolderIcon = 'fa ' + placeHolderIcon;
         }
 
         // checks for opening dialog

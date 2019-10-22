@@ -49,6 +49,7 @@ The plugin settings are highly customizable and you can change:
   - **Column 2:** - Description
   - **Column 3:** - Link / URL
   - **Column 4:** - Icon
+	- **Column 5:** - Icon Background Color (optional)
 - **Page Items to Submit** - Enter page or application items to be set into session state when the SQL query is executed via an AJAX request
 - **Show Processing** - Specify whether a waiting / processing indicator is displayed or not. This will replace the default search icon with an spinner as long as data is fetched from database
 - **Enable Local Data Cache** - Enable data cache to save the complete server response (from Data Source AJAX call) in session storage of browser. This helps to reduce calls from browser to server side
@@ -57,6 +58,9 @@ The plugin settings are highly customizable and you can change:
 - **Max. Search Display Results** - The maximum allowed search results displayed at once
 - **Width** - Width of the Spotlight search dialog. Enter either numbers for pixel values or percentage values
 - **Theme** - Choose the Spotlight Search theme which best matches your current UI
+- **Search Placeholder Text** - Text that is displayed in the spotlight search input field as an placeholder, Overrides application wide plugin setting
+- **Search Placeholder Icon** - Icon that is displayed in the spotlight search input field as an placeholder
+- **Escape Special Characters** - To prevent Cross-Site Scripting (XSS) attacks, always set this attribute to Yes. If you need to render HTML tags stored in the page item or in the entries of a list of values, you can set this flag to No
 
 
 ## Plugin Events
@@ -80,6 +84,20 @@ SELECT aap.page_title AS title
       ,'Go to page > ' || aap.page_title AS description
       ,apex_page.get_url(p_page => aap.page_id) AS link
       ,'fa-arrow-right' AS icon
+  FROM apex_application_pages aap
+ WHERE aap.application_id = :app_id
+   AND aap.page_mode = 'Normal'
+   AND aap.page_requires_authentication = 'Yes'
+   AND aap.page_id != 0
+ ORDER BY aap.page_id
+```
+
+```language-sql
+SELECT aap.page_title AS title
+      ,'Go to page > ' || aap.page_title AS description
+      ,apex_page.get_url(p_page => aap.page_id) AS link
+      ,'fa-arrow-right' AS icon
+			,'#479d9d' AS icon_color
   FROM apex_application_pages aap
  WHERE aap.application_id = :app_id
    AND aap.page_mode = 'Normal'
@@ -163,6 +181,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 
 ## Changelog
+
+#### 1.5.0 - Added search placeholder text as component setting, added search placeholder icon setting, added icon background color column in SQL query / fixed security issue & added escaping option / updated libs
 
 #### 1.4.1 - Fixed bug there prefill selected text only worked once / also execute search and list results when AJAX call is still running when typing
 

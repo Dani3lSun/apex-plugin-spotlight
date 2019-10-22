@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.4.1
+ * Version: 1.5.0
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -17,7 +17,8 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     l_result apex_plugin.t_dynamic_action_render_result;
     --
     -- plugin attributes
-    l_placeholder_text      p_plugin.attribute_01%TYPE := p_plugin.attribute_01;
+    l_placeholder_text      p_plugin.attribute_01%TYPE := nvl(p_dynamic_action.attribute_12,
+                                                              p_plugin.attribute_01);
     l_more_chars_text       p_plugin.attribute_02%TYPE := p_plugin.attribute_02;
     l_no_match_text         p_plugin.attribute_03%TYPE := p_plugin.attribute_03;
     l_one_match_text        p_plugin.attribute_04%TYPE := p_plugin.attribute_04;
@@ -40,6 +41,10 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                                                       'N');
     l_show_processing              VARCHAR2(5) := nvl(p_dynamic_action.attribute_11,
                                                       'N');
+    l_placeholder_icon             p_dynamic_action.attribute_13%TYPE := nvl(p_dynamic_action.attribute_13,
+                                                                             'DEFAULT');
+    l_escape_special_chars         VARCHAR2(5) := nvl(p_dynamic_action.attribute_14,
+                                                      'Y');
     --
     l_component_config_json CLOB := empty_clob();
     --
@@ -47,19 +52,17 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     FUNCTION get_da_event_name(p_action_id IN NUMBER) RETURN VARCHAR2 IS
       --
       l_da_event_name apex_application_page_da.when_event_internal_name%TYPE;
-      l_app_id        NUMBER;
       --
       CURSOR l_cur_da_event IS
         SELECT aapd.when_event_internal_name
           FROM apex_application_page_da      aapd,
                apex_application_page_da_acts aapda
          WHERE aapd.dynamic_action_id = aapda.dynamic_action_id
-           AND aapd.application_id = l_app_id
+           AND aapd.application_id = (SELECT nv('APP_ID')
+                                        FROM dual)
            AND aapda.action_id = p_action_id;
       --
     BEGIN
-      --
-      l_app_id := apex_util.get_numeric_session_state('APP_ID');
       --
       OPEN l_cur_da_event;
       FETCH l_cur_da_event
@@ -75,7 +78,6 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     FUNCTION get_da_fire_on_init(p_action_id IN NUMBER) RETURN VARCHAR2 IS
       --
       l_da_fire_on_init apex_application_page_da_acts.execute_on_page_init%TYPE;
-      l_app_id          NUMBER;
       --
       CURSOR l_cur_da_fire_on_init IS
         SELECT decode(aapda.execute_on_page_init,
@@ -84,12 +86,11 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                       'No',
                       'N') AS execute_on_page_init
           FROM apex_application_page_da_acts aapda
-         WHERE aapda.application_id = l_app_id
+         WHERE aapda.application_id = (SELECT nv('APP_ID')
+                                         FROM dual)
            AND aapda.action_id = p_action_id;
       --
     BEGIN
-      --
-      l_app_id := apex_util.get_numeric_session_state('APP_ID');
       --
       OPEN l_cur_da_fire_on_init;
       FETCH l_cur_da_fire_on_init
@@ -111,8 +112,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     -- add mousetrap.js and mark.js libs
     IF l_enable_keyboard_shortcuts = 'Y' THEN
       apex_javascript.add_library(p_name                  => 'mousetrap',
-                                  p_directory             => p_plugin.file_prefix ||
-                                                             'js/',
+                                  p_directory             => p_plugin.file_prefix || 'js/',
                                   p_version               => NULL,
                                   p_skip_extension        => FALSE,
                                   p_check_to_add_minified => TRUE);
@@ -120,11 +120,20 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     --
     IF l_enable_inpage_search = 'Y' THEN
       apex_javascript.add_library(p_name                  => 'jquery.mark',
-                                  p_directory             => p_plugin.file_prefix ||
-                                                             'js/',
+                                  p_directory             => p_plugin.file_prefix || 'js/',
                                   p_version               => NULL,
                                   p_skip_extension        => FALSE,
                                   p_check_to_add_minified => TRUE);
+    END IF;
+    -- escape input
+    IF l_escape_special_chars = 'Y' THEN
+      l_placeholder_text      := apex_escape.html(l_placeholder_text);
+      l_more_chars_text       := apex_escape.html(l_more_chars_text);
+      l_no_match_text         := apex_escape.html(l_no_match_text);
+      l_one_match_text        := apex_escape.html(l_one_match_text);
+      l_multiple_matches_text := apex_escape.html(l_multiple_matches_text);
+      l_inpage_search_text    := apex_escape.html(l_inpage_search_text);
+      l_placeholder_icon      := apex_escape.html(l_placeholder_icon);
     END IF;
     -- build component config json
     apex_json.initialize_clob_output;
@@ -172,23 +181,22 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                     l_enable_prefill_selected_text);
     apex_json.write('showProcessing',
                     l_show_processing);
+    apex_json.write('placeHolderIcon',
+                    l_placeholder_icon);
     apex_json.close_object();
     --
     l_component_config_json := apex_json.get_clob_output;
+    apex_json.free_output;
     -- init keyboard shortcut
     IF l_enable_keyboard_shortcuts = 'Y' THEN
-      apex_javascript.add_inline_code(p_code => 'function apexSpotlightInitKeyboardShortcuts' ||
-                                                p_dynamic_action.id ||
+      apex_javascript.add_inline_code(p_code => 'function apexSpotlightInitKeyboardShortcuts' || p_dynamic_action.id ||
                                                 '() { apex.da.apexSpotlight.initKeyboardShortcuts(' ||
-                                                l_component_config_json ||
-                                                '); }');
-      apex_javascript.add_onload_code(p_code => 'apexSpotlightInitKeyboardShortcuts' ||
-                                                p_dynamic_action.id ||
-                                                '();');
+                                                l_component_config_json || '); }');
+      apex_javascript.add_onload_code(p_code => 'apexSpotlightInitKeyboardShortcuts' || p_dynamic_action.id || '();');
     END IF;
     -- DA javascript function
-    l_result.javascript_function := 'function() { apex.da.apexSpotlight.pluginHandler(' ||
-                                    l_component_config_json || '); }';
+    l_result.javascript_function := 'function() { apex.da.apexSpotlight.pluginHandler(' || l_component_config_json ||
+                                    '); }';
     --
     RETURN l_result;
     --
@@ -199,8 +207,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
   -- #param p_plugin
   -- #return apex_plugin.t_dynamic_action_ajax_result
   FUNCTION ajax_apexspotlight(p_dynamic_action IN apex_plugin.t_dynamic_action,
-                              p_plugin         IN apex_plugin.t_plugin)
-    RETURN apex_plugin.t_dynamic_action_ajax_result IS
+                              p_plugin         IN apex_plugin.t_plugin) RETURN apex_plugin.t_dynamic_action_ajax_result IS
     --
     l_result apex_plugin.t_dynamic_action_ajax_result;
     --
@@ -210,19 +217,27 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     PROCEDURE exec_get_data_request(p_dynamic_action IN apex_plugin.t_dynamic_action,
                                     p_plugin         IN apex_plugin.t_plugin) IS
       l_data_source_sql_query p_dynamic_action.attribute_03%TYPE := p_dynamic_action.attribute_03;
+      l_escape_special_chars  VARCHAR2(5) := nvl(p_dynamic_action.attribute_14,
+                                                 'Y');
       l_data_type_list        apex_application_global.vc_arr2;
       l_column_value_list     apex_plugin_util.t_column_value_list2;
       l_row_count             NUMBER;
+      l_name                  VARCHAR2(4000);
+      l_description           VARCHAR2(4000);
+      l_link                  VARCHAR2(4000);
+      l_icon                  VARCHAR2(4000);
+      l_icon_color            VARCHAR2(4000);
     BEGIN
       -- Data Types of SQL Source Columns
       l_data_type_list(1) := apex_plugin_util.c_data_type_varchar2;
       l_data_type_list(2) := apex_plugin_util.c_data_type_varchar2;
       l_data_type_list(3) := apex_plugin_util.c_data_type_varchar2;
       l_data_type_list(4) := apex_plugin_util.c_data_type_varchar2;
+      l_data_type_list(5) := apex_plugin_util.c_data_type_varchar2;
       -- Get Data from SQL Source
       l_column_value_list := apex_plugin_util.get_data2(p_sql_statement  => l_data_source_sql_query,
                                                         p_min_columns    => 4,
-                                                        p_max_columns    => 4,
+                                                        p_max_columns    => 5,
                                                         p_data_type_list => l_data_type_list,
                                                         p_component_name => p_dynamic_action.action);
       -- loop over SQL Source results and write json
@@ -231,21 +246,46 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
       l_row_count := l_column_value_list(1).value_list.count;
       --
       FOR i IN 1 .. l_row_count LOOP
+        -- escape input
+        IF l_escape_special_chars = 'Y' THEN
+          l_name        := apex_escape.html(l_column_value_list(1).value_list(i).varchar2_value);
+          l_description := apex_escape.html(l_column_value_list(2).value_list(i).varchar2_value);
+          l_link        := l_column_value_list(3).value_list(i).varchar2_value;
+          l_icon        := apex_escape.html(l_column_value_list(4).value_list(i).varchar2_value);
+          IF l_column_value_list.last = 5 THEN
+            l_icon_color := apex_escape.html(l_column_value_list(5).value_list(i).varchar2_value);
+          END IF;
+        ELSE
+          l_name        := l_column_value_list(1).value_list(i).varchar2_value;
+          l_description := l_column_value_list(2).value_list(i).varchar2_value;
+          l_link        := l_column_value_list(3).value_list(i).varchar2_value;
+          l_icon        := l_column_value_list(4).value_list(i).varchar2_value;
+          IF l_column_value_list.last = 5 THEN
+            l_icon_color := l_column_value_list(5).value_list(i).varchar2_value;
+          END IF;
+        END IF;
+        -- write json
         apex_json.open_object;
         -- name / title
         apex_json.write('n',
-                        l_column_value_list(1).value_list(i).varchar2_value);
+                        l_name);
         -- description
         apex_json.write('d',
-                        l_column_value_list(2).value_list(i).varchar2_value);
+                        l_description);
         -- link / URL
         apex_json.write('u',
-                        l_column_value_list(3).value_list(i).varchar2_value);
+                        l_link);
         -- icon
         apex_json.write('i',
-                        l_column_value_list(4).value_list(i).varchar2_value);
+                        l_icon);
+        -- icon color (optional)
+        IF l_column_value_list.last = 5 THEN
+          apex_json.write('ic',
+                          nvl(l_icon_color,
+                              'DEFAULT'));
+        END IF;
         -- if URL contains ~SEARCH_VALUE~, make list entry static
-        IF instr(l_column_value_list(3).value_list(i).varchar2_value,
+        IF instr(l_link,
                  '~SEARCH_VALUE~') > 0 THEN
           apex_json.write('s',
                           TRUE);
@@ -274,9 +314,9 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
       l_url          := apex_application.g_x03;
       -- Check for f?p URL and if URL contains ~SEARCH_VALUE~ substitution string
       IF instr(l_url,
-               'f?p=') > 0 AND
-         instr(l_url,
-               '~SEARCH_VALUE~') > 0 THEN
+               'f?p=') > 0
+         AND instr(l_url,
+                   '~SEARCH_VALUE~') > 0 THEN
         -- replace substitution string with real search value
         l_url := REPLACE(l_url,
                          '~SEARCH_VALUE~',
