@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.5.1
+ * Version: 1.5.2
  */
 
 /**
@@ -667,12 +667,13 @@ apex.da.apexSpotlight = {
             rowsPerView;
 
           var initHeights = function() {
-            var viewTop$ = $('div.apx-Spotlight-results');
-
-            viewHeight = viewTop$.outerHeight();
-            lineHeight = $('li.apx-Spotlight-result').outerHeight();
-            viewTop = viewTop$.offset().top;
-            rowsPerView = (viewHeight / lineHeight);
+            if ($(apexSpotlight.DOT + apexSpotlight.SP_DIALOG).length > 0) {
+              var viewTop$ = $('div.apx-Spotlight-results');
+              viewHeight = viewTop$.outerHeight();
+              lineHeight = $('li.apx-Spotlight-result').outerHeight();
+              viewTop = viewTop$.offset().top;
+              rowsPerView = (viewHeight / lineHeight);
+            }
           };
 
           var scrolledDownOutOfView = function(elem$) {
@@ -755,7 +756,7 @@ apex.da.apexSpotlight = {
 
           $('body')
             .append(
-              '<div class="' + apexSpotlight.SP_DIALOG + '">' +
+              '<div class="' + apexSpotlight.SP_DIALOG + '" data-id="' + apexSpotlight.gDynamicActionId + '">' +
               '<div class="apx-Spotlight-body">' +
               '<div class="apx-Spotlight-search">' +
               '<div class="apx-Spotlight-icon">' +
@@ -915,6 +916,15 @@ apex.da.apexSpotlight = {
         }
 
         apexSpotlight.gHasDialogCreated = $(apexSpotlight.DOT + apexSpotlight.SP_DIALOG).length > 0;
+
+        // if already created dialog is from another DA --> destroy existing dialog
+        if (apexSpotlight.gHasDialogCreated) {
+          if ($(apexSpotlight.DOT + apexSpotlight.SP_DIALOG).attr('data-id') != apexSpotlight.gDynamicActionId) {
+            apexSpotlight.resetSpotlight();
+            $(apexSpotlight.DOT + apexSpotlight.SP_DIALOG).remove();
+            apexSpotlight.gHasDialogCreated = false;
+          }
+        }
 
         // set selected text to spotlight input
         if (apexSpotlight.gEnablePrefillSelectedText) {
