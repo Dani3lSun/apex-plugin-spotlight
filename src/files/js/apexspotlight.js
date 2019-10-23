@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.5.0
+ * Version: 1.5.1
  */
 
 /**
@@ -90,6 +90,7 @@ apex.da.apexSpotlight = {
       gStaticIndex: [],
       gKeywords: '',
       gAjaxIdentifier: null,
+      gDynamicActionId: null,
       gPlaceholderText: null,
       gMoreCharsText: null,
       gNoMatchText: null,
@@ -196,8 +197,7 @@ apex.da.apexSpotlight = {
             prefix: 'apexSpotlight',
             useAppId: true
           });
-
-          sessionStorage.setItem(apexSession + '.data', pData);
+          sessionStorage.setItem(apexSession + '.' + apexSpotlight.gDynamicActionId + '.data', pData);
         }
       },
       /**
@@ -213,8 +213,7 @@ apex.da.apexSpotlight = {
             prefix: 'apexSpotlight',
             useAppId: true
           });
-
-          storageValue = sessionStorage.getItem(apexSession + '.data');
+          storageValue = sessionStorage.getItem(apexSession + '.' + apexSpotlight.gDynamicActionId + '.data');
         }
         return storageValue;
       },

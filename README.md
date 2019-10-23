@@ -182,6 +182,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
+#### 1.5.1 - Local data store (browsers session storage) now includes dynamic action id to better handle multiple usage of plugin
+
 #### 1.5.0 - Added search placeholder text as component setting, added search placeholder icon setting, added icon background color column in SQL query / fixed security issue & added escaping option / updated libs
 
 #### 1.4.1 - Fixed bug there prefill selected text only worked once / also execute search and list results when AJAX call is still running when typing
