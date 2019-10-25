@@ -184,6 +184,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 ## Changelog
 
+#### 1.6.1 - Fixed search history issue to recognize stored searches even after new APEX session
+
 #### 1.6.0 - Added search history feature to show a popover (on mouse hover of main search icon) which contains the last 20 search terms a user entered
 
 #### 1.5.2 - Improved handling of multiple usage of plugin on the same page

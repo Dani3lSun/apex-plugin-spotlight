@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.6.0
+ * Version: 1.6.1
  */
 
 /**
@@ -227,7 +227,7 @@ apex.da.apexSpotlight = {
         return storageValue;
       },
       /**
-       * Save search term in local storage of browser (apexSpotlight.<app_id>.<app_session>.<da-id>.history)
+       * Save search term in local storage of browser (apexSpotlight.<app_id>.<da-id>.history)
        * @param {string} pSearchTerm
        */
       setSpotlightHistoryLocalStorage: function(pSearchTerm) {
@@ -260,17 +260,16 @@ apex.da.apexSpotlight = {
           storageArray = removeOldValuesFromArray(storageArray);
 
           if (hasLocalStorageSupport) {
-            var apexSession = $v('pInstance');
             var localStorage = apex.storage.getScopedLocalStorage({
               prefix: 'apexSpotlight',
               useAppId: true
             });
-            localStorage.setItem(apexSession + '.' + apexSpotlight.gDynamicActionId + '.history', JSON.stringify(storageArray));
+            localStorage.setItem(apexSpotlight.gDynamicActionId + '.history', JSON.stringify(storageArray));
           }
         }
       },
       /**
-       * Get saved search terms from local storage of browser (apexSpotlight.<app_id>.<app_session>.<da-id>.history)
+       * Get saved search terms from local storage of browser (apexSpotlight.<app_id>.<da-id>.history)
        */
       getSpotlightHistoryLocalStorage: function() {
         var hasLocalStorageSupport = apex.storage.hasLocalStorageSupport();
@@ -278,12 +277,11 @@ apex.da.apexSpotlight = {
         var storageValue;
         var storageArray = [];
         if (hasLocalStorageSupport) {
-          var apexSession = $v('pInstance');
           var localStorage = apex.storage.getScopedLocalStorage({
             prefix: 'apexSpotlight',
             useAppId: true
           });
-          storageValue = localStorage.getItem(apexSession + '.' + apexSpotlight.gDynamicActionId + '.history');
+          storageValue = localStorage.getItem(apexSpotlight.gDynamicActionId + '.history');
           if (storageValue) {
             storageArray = JSON.parse(storageValue);
           }
@@ -297,12 +295,11 @@ apex.da.apexSpotlight = {
         var hasLocalStorageSupport = apex.storage.hasLocalStorageSupport();
 
         if (hasLocalStorageSupport) {
-          var apexSession = $v('pInstance');
           var localStorage = apex.storage.getScopedLocalStorage({
             prefix: 'apexSpotlight',
             useAppId: true
           });
-          localStorage.removeItem(apexSession + '.' + apexSpotlight.gDynamicActionId + '.history');
+          localStorage.removeItem(apexSpotlight.gDynamicActionId + '.history');
         }
       },
       /**
