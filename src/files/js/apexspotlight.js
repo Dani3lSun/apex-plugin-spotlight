@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/js/spotlight.js
- * Version: 1.5.2
+ * Version: 1.6.0
  */
 
 /**
@@ -48,6 +48,13 @@ apex.da.apexSpotlight = {
         apex.da.apexSpotlight.pluginHandler(pOptions);
       });
     }
+  },
+  /**
+   * Set spotlight search input to history value
+   * @param {string} pSearchTerm
+   */
+  setHistorySearchValue: function(pSearchTerm) {
+    $('.apx-Spotlight-input').val(pSearchTerm).trigger('input');
   },
   /**
    * Plugin handler - called from plugin render function
@@ -97,9 +104,11 @@ apex.da.apexSpotlight = {
       gOneMatchText: null,
       gMultipleMatchesText: null,
       gInPageSearchText: null,
+      gSearchHistoryDeleteText: null,
       gEnableInPageSearch: true,
       gEnableDataCache: false,
       gEnablePrefillSelectedText: false,
+      gEnableSearchHistory: false,
       gSubmitItemsArray: [],
       gResultListThemeClass: '',
       gIconThemeClass: '',
@@ -185,11 +194,11 @@ apex.da.apexSpotlight = {
         }
       },
       /**
-       * Save JSON Data in local session storage of browser (apexSpotlight.<app_id>.data)
+       * Save JSON Data in local session storage of browser (apexSpotlight.<app_id>.<app_session>.<da-id>.data)
        * @param {object} pData
        */
       setSpotlightDataSessionStorage: function(pData) {
-        var hasSessionStorageSupport = apex.storage.hasSessionStorageSupport;
+        var hasSessionStorageSupport = apex.storage.hasSessionStorageSupport();
 
         if (hasSessionStorageSupport) {
           var apexSession = $v('pInstance');
@@ -201,10 +210,10 @@ apex.da.apexSpotlight = {
         }
       },
       /**
-       * Get JSON Data from local session storage of browser (apexSpotlight.<app_id>.data)
+       * Get JSON Data from local session storage of browser (apexSpotlight.<app_id>.<app_session>.<da-id>.data)
        */
       getSpotlightDataSessionStorage: function() {
-        var hasSessionStorageSupport = apex.storage.hasSessionStorageSupport;
+        var hasSessionStorageSupport = apex.storage.hasSessionStorageSupport();
 
         var storageValue;
         if (hasSessionStorageSupport) {
@@ -218,11 +227,150 @@ apex.da.apexSpotlight = {
         return storageValue;
       },
       /**
+       * Save search term in local storage of browser (apexSpotlight.<app_id>.<app_session>.<da-id>.history)
+       * @param {string} pSearchTerm
+       */
+      setSpotlightHistoryLocalStorage: function(pSearchTerm) {
+        var hasLocalStorageSupport = apex.storage.hasLocalStorageSupport();
+        var storageArray = [];
+
+        var removeDupsFromArray = function(pArray) {
+          var unique = {};
+          pArray.forEach(function(i) {
+            if (!unique[i]) {
+              unique[i] = true;
+            }
+          });
+          return Object.keys(unique);
+        };
+
+        var removeOldValuesFromArray = function(pArray) {
+          for (var i = 0; i < pArray.length; i++) {
+            if (i > 30) {
+              pArray.splice(i, 1);
+            }
+          }
+          return pArray;
+        };
+        // only add strings to first position of array
+        if (isNaN(pSearchTerm)) {
+          storageArray = apexSpotlight.getSpotlightHistoryLocalStorage();
+          storageArray.unshift(pSearchTerm.trim());
+          storageArray = removeDupsFromArray(storageArray);
+          storageArray = removeOldValuesFromArray(storageArray);
+
+          if (hasLocalStorageSupport) {
+            var apexSession = $v('pInstance');
+            var localStorage = apex.storage.getScopedLocalStorage({
+              prefix: 'apexSpotlight',
+              useAppId: true
+            });
+            localStorage.setItem(apexSession + '.' + apexSpotlight.gDynamicActionId + '.history', JSON.stringify(storageArray));
+          }
+        }
+      },
+      /**
+       * Get saved search terms from local storage of browser (apexSpotlight.<app_id>.<app_session>.<da-id>.history)
+       */
+      getSpotlightHistoryLocalStorage: function() {
+        var hasLocalStorageSupport = apex.storage.hasLocalStorageSupport();
+
+        var storageValue;
+        var storageArray = [];
+        if (hasLocalStorageSupport) {
+          var apexSession = $v('pInstance');
+          var localStorage = apex.storage.getScopedLocalStorage({
+            prefix: 'apexSpotlight',
+            useAppId: true
+          });
+          storageValue = localStorage.getItem(apexSession + '.' + apexSpotlight.gDynamicActionId + '.history');
+          if (storageValue) {
+            storageArray = JSON.parse(storageValue);
+          }
+        }
+        return storageArray;
+      },
+      /**
+       * Remove saved search terms from local storage of browser (apexSpotlight.<app_id>.<app_session>.<da-id>.history)
+       */
+      removeSpotlightHistoryLocalStorage: function() {
+        var hasLocalStorageSupport = apex.storage.hasLocalStorageSupport();
+
+        if (hasLocalStorageSupport) {
+          var apexSession = $v('pInstance');
+          var localStorage = apex.storage.getScopedLocalStorage({
+            prefix: 'apexSpotlight',
+            useAppId: true
+          });
+          localStorage.removeItem(apexSession + '.' + apexSpotlight.gDynamicActionId + '.history');
+        }
+      },
+      /**
+       * Show popover using tippy.js which contains saved history entries of local storage
+       */
+      showTippyHistoryPopover: function() {
+        var historyArray = apexSpotlight.getSpotlightHistoryLocalStorage() || [];
+        var content = '';
+        var loopCount = 0;
+
+        if (historyArray.length > 0) {
+
+          apexSpotlight.destroyTippyHistoryPopover();
+          $('div.apx-Spotlight-icon-main').css('cursor', 'pointer');
+
+          content += '<ul class="spotlight-history-list">';
+          for (var i = 0; i < historyArray.length; i++) {
+            content += "<li><a class=\"spotlight-history-link\" href=\"javascript:apex.da.apexSpotlight.setHistorySearchValue('" + apex.util.escapeHTML(historyArray[i]) + "');\">" + apex.util.escapeHTML(historyArray[i]) + "</a></li>";
+            loopCount = loopCount + 1;
+            if (loopCount >= 20) {
+              break;
+            }
+          }
+          content += "<li><a class=\"spotlight-history-delete\" href=\"javascript:void(0);\"><i>" + apexSpotlight.gSearchHistoryDeleteText + "</i></a></li>";
+          content += '</ul>';
+
+          tippy($('div.apx-Spotlight-icon-main')[0], {
+            content: content,
+            interactive: true,
+            arrow: true,
+            placement: 'right-end',
+            animateFill: false
+          });
+
+          $('body').on('click', 'a.spotlight-history-link', function() {
+            apexSpotlight.hideTippyHistoryPopover();
+          });
+          $('body').on('click', 'a.spotlight-history-delete', function() {
+            apexSpotlight.destroyTippyHistoryPopover();
+            apexSpotlight.removeSpotlightHistoryLocalStorage();
+          });
+        }
+      },
+      /**
+       * Hide popover using tippy.js which contains saved history entries of local storage
+       */
+      hideTippyHistoryPopover: function() {
+        var tippyElem = $('div.apx-Spotlight-icon-main')[0];
+        if (tippyElem && tippyElem._tippy) {
+          tippyElem._tippy.hide();
+        }
+      },
+      /**
+       * Destroy popover using tippy.js which contains saved history entries of local storage
+       */
+      destroyTippyHistoryPopover: function() {
+        var tippyElem = $('div.apx-Spotlight-icon-main')[0];
+        if (tippyElem && tippyElem._tippy) {
+          tippyElem._tippy.destroy();
+        }
+        $(apexSpotlight.DOT + apexSpotlight.SP_INPUT).focus();
+      },
+      /**
        * Show wait spinner to show progress of AJAX call
        */
       showWaitSpinner: function() {
         if (apexSpotlight.gShowProcessing) {
-          $('div.apx-Spotlight-icon span').removeClass().addClass('fa fa-refresh fa-anim-spin');
+          $('div.apx-Spotlight-icon-main span').removeClass().addClass('fa fa-refresh fa-anim-spin');
         }
       },
       /**
@@ -230,7 +378,7 @@ apex.da.apexSpotlight = {
        */
       hideWaitSpinner: function() {
         if (apexSpotlight.gShowProcessing) {
-          $('div.apx-Spotlight-icon span').removeClass().addClass(apexSpotlight.gPlaceHolderIcon);
+          $('div.apx-Spotlight-icon-main span').removeClass().addClass(apexSpotlight.gPlaceHolderIcon);
         }
       },
       /**
@@ -759,7 +907,7 @@ apex.da.apexSpotlight = {
               '<div class="' + apexSpotlight.SP_DIALOG + '" data-id="' + apexSpotlight.gDynamicActionId + '">' +
               '<div class="apx-Spotlight-body">' +
               '<div class="apx-Spotlight-search">' +
-              '<div class="apx-Spotlight-icon">' +
+              '<div class="apx-Spotlight-icon apx-Spotlight-icon-main">' +
               '<span class="' + apexSpotlight.gPlaceHolderIcon + '" aria-hidden="true"></span>' +
               '</div>' +
               '<div class="apx-Spotlight-field">' +
@@ -805,6 +953,9 @@ apex.da.apexSpotlight = {
 
                 case apexSpotlight.KEYS.ENTER:
                   e.preventDefault(); // don't submit on enter
+                  if (apexSpotlight.gEnableSearchHistory) {
+                    apexSpotlight.setSpotlightHistoryLocalStorage($(apexSpotlight.DOT + apexSpotlight.SP_INPUT).val());
+                  }
                   apexSpotlight.goTo(results$.find('li.is-active span'), e);
                   break;
                 case apexSpotlight.KEYS.TAB:
@@ -868,6 +1019,9 @@ apex.da.apexSpotlight = {
 
             })
             .on('click', 'span.apx-Spotlight-link', function(e) {
+              if (apexSpotlight.gEnableSearchHistory) {
+                apexSpotlight.setSpotlightHistoryLocalStorage($(apexSpotlight.DOT + apexSpotlight.SP_INPUT).val());
+              }
               apexSpotlight.goTo($(this), e);
             })
             .on('mousemove', 'li.apx-Spotlight-result', function() {
@@ -957,6 +1111,11 @@ apex.da.apexSpotlight = {
 
                 apex.navigation.beginFreezeScroll();
 
+                // show history popover
+                if (apexSpotlight.gEnableSearchHistory) {
+                  apexSpotlight.showTippyHistoryPopover();
+                }
+
                 $('.ui-widget-overlay').on('click', function() {
                   apexSpotlight.closeDialog();
                 });
@@ -965,6 +1124,10 @@ apex.da.apexSpotlight = {
                 apex.event.trigger('body', 'apexspotlight-close-dialog');
                 apexSpotlight.resetSpotlight();
                 apex.navigation.endFreezeScroll();
+                // distroy history popover
+                if (apexSpotlight.gEnableSearchHistory) {
+                  apexSpotlight.destroyTippyHistoryPopover();
+                }
               }
             });
           }
@@ -1029,6 +1192,7 @@ apex.da.apexSpotlight = {
         var oneMatchText = apexSpotlight.gOneMatchText = pOptions.oneMatchText;
         var multipleMatchesText = apexSpotlight.gMultipleMatchesText = pOptions.multipleMatchesText;
         var inPageSearchText = apexSpotlight.gInPageSearchText = pOptions.inPageSearchText;
+        var searchHistoryDeleteText = apexSpotlight.gSearchHistoryDeleteText = pOptions.searchHistoryDeleteText;
 
         var enableKeyboardShortcuts = pOptions.enableKeyboardShortcuts;
         var keyboardShortcuts = pOptions.keyboardShortcuts;
@@ -1041,6 +1205,7 @@ apex.da.apexSpotlight = {
         var enablePrefillSelectedText = pOptions.enablePrefillSelectedText;
         var showProcessing = pOptions.showProcessing;
         var placeHolderIcon = pOptions.placeHolderIcon;
+        var enableSearchHistory = pOptions.enableSearchHistory;
 
         var submitItemsArray = [];
         var openDialog = true;
@@ -1057,6 +1222,7 @@ apex.da.apexSpotlight = {
         apex.debug.log('apexSpotlight.pluginHandler - oneMatchText', oneMatchText);
         apex.debug.log('apexSpotlight.pluginHandler - multipleMatchesText', multipleMatchesText);
         apex.debug.log('apexSpotlight.pluginHandler - inPageSearchText', inPageSearchText);
+        apex.debug.log('apexSpotlight.pluginHandler - searchHistoryDeleteText', searchHistoryDeleteText);
 
         apex.debug.log('apexSpotlight.pluginHandler - enableKeyboardShortcuts', enableKeyboardShortcuts);
         apex.debug.log('apexSpotlight.pluginHandler - keyboardShortcuts', keyboardShortcuts);
@@ -1069,6 +1235,7 @@ apex.da.apexSpotlight = {
         apex.debug.log('apexSpotlight.pluginHandler - enablePrefillSelectedText', enablePrefillSelectedText);
         apex.debug.log('apexSpotlight.pluginHandler - showProcessing', showProcessing);
         apex.debug.log('apexSpotlight.pluginHandler - placeHolderIcon', placeHolderIcon);
+        apex.debug.log('apexSpotlight.pluginHandler - enableSearchHistory', enableSearchHistory);
 
         // polyfill for older browsers like IE (startsWith & includes functions)
         if (!String.prototype.startsWith) {
@@ -1096,6 +1263,7 @@ apex.da.apexSpotlight = {
         apexSpotlight.gEnableDataCache = (enableDataCache == 'Y') ? true : false;
         apexSpotlight.gEnablePrefillSelectedText = (enablePrefillSelectedText == 'Y') ? true : false;
         apexSpotlight.gShowProcessing = (showProcessing == 'Y') ? true : false;
+        apexSpotlight.gEnableSearchHistory = (enableSearchHistory == 'Y') ? true : false;
 
 
         // build page items to submit array

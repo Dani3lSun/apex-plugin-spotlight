@@ -1,6 +1,6 @@
 /*-------------------------------------
  * APEX Spotlight Search
- * Version: 1.5.2
+ * Version: 1.6.0
  * Author:  Daniel Hochleitner
  *-------------------------------------
 */
@@ -17,13 +17,14 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
     l_result apex_plugin.t_dynamic_action_render_result;
     --
     -- plugin attributes
-    l_placeholder_text      p_plugin.attribute_01%TYPE := nvl(p_dynamic_action.attribute_12,
-                                                              p_plugin.attribute_01);
-    l_more_chars_text       p_plugin.attribute_02%TYPE := p_plugin.attribute_02;
-    l_no_match_text         p_plugin.attribute_03%TYPE := p_plugin.attribute_03;
-    l_one_match_text        p_plugin.attribute_04%TYPE := p_plugin.attribute_04;
-    l_multiple_matches_text p_plugin.attribute_05%TYPE := p_plugin.attribute_05;
-    l_inpage_search_text    p_plugin.attribute_06%TYPE := p_plugin.attribute_06;
+    l_placeholder_text           p_plugin.attribute_01%TYPE := nvl(p_dynamic_action.attribute_12,
+                                                                   p_plugin.attribute_01);
+    l_more_chars_text            p_plugin.attribute_02%TYPE := p_plugin.attribute_02;
+    l_no_match_text              p_plugin.attribute_03%TYPE := p_plugin.attribute_03;
+    l_one_match_text             p_plugin.attribute_04%TYPE := p_plugin.attribute_04;
+    l_multiple_matches_text      p_plugin.attribute_05%TYPE := p_plugin.attribute_05;
+    l_inpage_search_text         p_plugin.attribute_06%TYPE := p_plugin.attribute_06;
+    l_search_history_delete_text p_plugin.attribute_07%TYPE := p_plugin.attribute_07;
     --
     l_enable_keyboard_shortcuts    VARCHAR2(5) := nvl(p_dynamic_action.attribute_01,
                                                       'N');
@@ -45,6 +46,8 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                                                                              'DEFAULT');
     l_escape_special_chars         VARCHAR2(5) := nvl(p_dynamic_action.attribute_14,
                                                       'Y');
+    l_enable_search_history        VARCHAR2(5) := nvl(p_dynamic_action.attribute_15,
+                                                      'N');
     --
     l_component_config_json CLOB := empty_clob();
     --
@@ -109,7 +112,7 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                                             p_dynamic_action => p_dynamic_action);
     END IF;
     --
-    -- add mousetrap.js and mark.js libs
+    -- add mousetrap.js & mark.js libs & tippy libs
     IF l_enable_keyboard_shortcuts = 'Y' THEN
       apex_javascript.add_library(p_name                  => 'mousetrap',
                                   p_directory             => p_plugin.file_prefix || 'js/',
@@ -125,15 +128,24 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                                   p_skip_extension        => FALSE,
                                   p_check_to_add_minified => TRUE);
     END IF;
+    --
+    IF l_enable_search_history = 'Y' THEN
+      apex_javascript.add_library(p_name                  => 'tippy.all',
+                                  p_directory             => p_plugin.file_prefix || 'js/',
+                                  p_version               => NULL,
+                                  p_skip_extension        => FALSE,
+                                  p_check_to_add_minified => TRUE);
+    END IF;
     -- escape input
     IF l_escape_special_chars = 'Y' THEN
-      l_placeholder_text      := apex_escape.html(l_placeholder_text);
-      l_more_chars_text       := apex_escape.html(l_more_chars_text);
-      l_no_match_text         := apex_escape.html(l_no_match_text);
-      l_one_match_text        := apex_escape.html(l_one_match_text);
-      l_multiple_matches_text := apex_escape.html(l_multiple_matches_text);
-      l_inpage_search_text    := apex_escape.html(l_inpage_search_text);
-      l_placeholder_icon      := apex_escape.html(l_placeholder_icon);
+      l_placeholder_text           := apex_escape.html(l_placeholder_text);
+      l_more_chars_text            := apex_escape.html(l_more_chars_text);
+      l_no_match_text              := apex_escape.html(l_no_match_text);
+      l_one_match_text             := apex_escape.html(l_one_match_text);
+      l_multiple_matches_text      := apex_escape.html(l_multiple_matches_text);
+      l_inpage_search_text         := apex_escape.html(l_inpage_search_text);
+      l_search_history_delete_text := apex_escape.html(l_search_history_delete_text);
+      l_placeholder_icon           := apex_escape.html(l_placeholder_icon);
     END IF;
     -- build component config json
     apex_json.initialize_clob_output;
@@ -160,6 +172,8 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                     l_multiple_matches_text);
     apex_json.write('inPageSearchText',
                     l_inpage_search_text);
+    apex_json.write('searchHistoryDeleteText',
+                    l_search_history_delete_text);
     -- component attributes
     apex_json.write('enableKeyboardShortcuts',
                     l_enable_keyboard_shortcuts);
@@ -183,6 +197,8 @@ CREATE OR REPLACE PACKAGE BODY apexspotlight_plg_pkg IS
                     l_show_processing);
     apex_json.write('placeHolderIcon',
                     l_placeholder_icon);
+    apex_json.write('enableSearchHistory',
+                    l_enable_search_history);
     apex_json.close_object();
     --
     l_component_config_json := apex_json.get_clob_output;

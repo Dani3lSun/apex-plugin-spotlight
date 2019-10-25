@@ -2,7 +2,7 @@
  * APEX Spotlight Search
  * Author: Daniel Hochleitner
  * Credits: APEX Dev Team: /i/apex_ui/css/core/Spotlight.css
- * Version: 1.5.2
+ * Version: 1.6.0
  */
 .apx-Spotlight {
   display: flex;
@@ -178,6 +178,16 @@ body .ui-dialog.ui-dialog--apexspotlight .ui-dialog-titlebar {
   .apx-Spotlight-results {
     max-height: 390px;
   }
+}
+
+/* Tippy History Popover */
+ul.spotlight-history-list {
+  text-align: left;
+}
+
+a.spotlight-history-link,
+a.spotlight-history-delete {
+  color: #fff;
 }
 
 /* APEX Spotlight Search Orange Theme */

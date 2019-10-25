@@ -40,6 +40,7 @@ The plugin settings are highly customizable and you can change:
 - **1 Match Found Text** - Text that is displayed when 1 search result was found
 - **Multiple Matches Found Text** - Text that is displayed when multiple search results were found
 - **In-Page Search Text** - Text that is displayed in the spotlight search list for in-page search feature
+- **Search History Delete Text** - Text that is displayed in the spotlight search history list to delete local search history. Only valid when you enabled search history feature
 
 ### Component settings
 - **Enable Keyboard Shortcuts** - Enables you to add custom keyboard shortcuts to open spotlight search
@@ -60,6 +61,7 @@ The plugin settings are highly customizable and you can change:
 - **Theme** - Choose the Spotlight Search theme which best matches your current UI
 - **Search Placeholder Text** - Text that is displayed in the spotlight search input field as an placeholder, Overrides application wide plugin setting
 - **Search Placeholder Icon** - Icon that is displayed in the spotlight search input field as an placeholder
+- **Enable Search History** - Enable search history to show a popover (on mouse hover of main search icon next to spotlight input field) which contains the last 20 search terms of the user. It uses browsers local storage to store the entered search terms
 - **Escape Special Characters** - To prevent Cross-Site Scripting (XSS) attacks, always set this attribute to Yes. If you need to render HTML tags stored in the page item or in the entries of a list of values, you can set this flag to No
 
 
@@ -181,6 +183,8 @@ https://apex.oracle.com/pls/apex/f?p=APEXPLUGIN
 
 
 ## Changelog
+
+#### 1.6.0 - Added search history feature to show a popover (on mouse hover of main search icon) which contains the last 20 search terms a user entered
 
 #### 1.5.2 - Improved handling of multiple usage of plugin on the same page
 
