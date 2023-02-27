@@ -498,7 +498,7 @@ apex.da.apexSpotlight = {
        */
       resetSpotlight: function() {
         $('#' + apexSpotlight.SP_LIST).empty();
-        $(apexSpotlight.DOT + apexSpotlight.SP_INPUT).val('').focus();
+        $(apexSpotlight.DOT + apexSpotlight.SP_INPUT).val('');
         apexSpotlight.gKeywords = '';
         apexSpotlight.handleAriaAttr();
       },
